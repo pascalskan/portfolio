@@ -47,7 +47,7 @@ public/shots/         project screenshots (see public/shots/README.txt)
 
 ## Scroll transitions
 
-Every section change has its own scrubbed transition (`src/transitions.js`, `src/transitions.css`). Each one is a tall block with a sticky stage; scrolling through it drives a GSAP timeline, starting on the previous section's background and ending on the next one's. The twelve scenes are joined by eleven different transitions: torn paper, index bars, a scatter-to-forecast fit, a ledger page turn, a globe and flight route, a road drive, Bauhaus assembly, frosted glass, an ascending staircase, a barbell being loaded, and a rising heat front.
+Every section change has its own scrubbed transition (`src/transitions.js`, `src/transitions.css`). Each one is a tall block with a sticky stage; scrolling through it drives a GSAP timeline, starting on the previous section's background and ending on the next one's. The twelve scenes are joined by eleven different transitions: a camera aperture, index rows that become the real work list, a scatter-to-forecast fit, a split-flap board, a globe and flight route, a road drive, a self-drawing chart, frosted glass, a career-timeline scrub, a barbell being loaded, and a rising heat front. The next section sits underneath each transition, so every one ends exactly on that section's first screen (its headings then animate in).
 
 ## Deploying
 

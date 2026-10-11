@@ -44,52 +44,83 @@ function canvasLayer(st, ctx) {
 }
 
 /* ---------------------------------------------------------------- 1 · Hero → About
-   The contour map you were looking at dives away (rings rush past the camera) while a sheet of torn paper rises over it. */
-function t1({ st, tl, gsap, cap }) {
-  const rng = rngFrom(11);
-  let rings = '';
-  for (let i = 0; i < 18; i++) {
-    const r = 3 + i * 3.2, ph = rng() * 6.28, k = 2 + Math.floor(rng() * 3);
-    let d = '';
-    for (let a = 0; a < 80; a++) {
-      const t = (a / 80) * Math.PI * 2;
-      const rr = r * (1 + 0.16 * Math.sin(t * k + ph) + 0.07 * Math.sin(t * (k + 3) + ph * 2));
-      d += (a ? 'L' : 'M') + (50 + Math.cos(t) * rr * 1.3).toFixed(2) + ' ' + (50 + Math.sin(t) * rr * 0.8).toFixed(2);
-    }
-    rings += `<path d="${d}Z" fill="none" stroke="${i % 4 === 0 ? '#ff7a45' : 'rgba(236,235,230,.4)'}" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
-  }
-  const vg = svg(`<g class="rg">${rings}</g>`, 'layer', st, { viewBox: '0 0 100 100', preserveAspectRatio: 'xMidYMid slice' });
-  const g = vg.querySelector('.rg');
-
-  const edge = (seed, fill, amp) => {
-    const r = rngFrom(seed); let d = 'M0 64';
-    for (let x = 0; x <= 1000; x += 8) d += `L${x} ${(30 + (r() - 0.5) * amp + Math.sin(x * 0.021) * 7 + Math.sin(x * 0.07) * 4).toFixed(1)}`;
-    return `<svg class="t1-edge" viewBox="0 0 1000 64" preserveAspectRatio="none"><path d="${d}L1000 64Z" fill="${fill}"/></svg>`;
+   A camera aperture opens from the dark onto the page: six blades, a viewfinder and a warm bloom. */
+function t1({ st, tl, ctx }) {
+  h('div', 't1-paper', st);
+  const bloom = h('div', 't1-bloom', st);
+  const bl = svg('<path class="dk" fill="#0a0b0d" fill-rule="evenodd"/><g class="sm" stroke="rgba(236,235,230,.22)" stroke-width="1.2"><line/><line/><line/><line/><line/><line/></g>', 'layer', st);
+  const dk = bl.querySelector('.dk'), lines = [...bl.querySelectorAll('line')];
+  const vf = svg(`<g fill="none" stroke="#1d1a14" stroke-width="1.6">
+      <path d="M12 20V12H20M88 12H80M88 12V20M12 80V88H20M88 80V88H80" transform="translate(0 0)"/>
+      <path class="cx" d="M47 50H53M50 47V53"/></g>
+      <rect class="fb" x="42" y="44" width="16" height="12" fill="none" stroke="#a63a15" stroke-width="1.8"/>`, 't1-vf', st, { viewBox: '0 0 100 100', preserveAspectRatio: 'none' });
+  const brackets = vf.querySelector('g'), fb = vf.querySelector('.fb');
+  const af = h('div', 't1-af', st, 'Focus · locked');
+  const draw = (p) => {
+    const W = st.clientWidth, H = st.clientHeight, cx = W / 2, cy = H / 2;
+    const e = clamp((p - 0.08) / 0.72), rmax = Math.hypot(W, H) * 0.64;
+    const R = e <= 0 ? 0 : lerp(16, rmax, Math.pow(eio(e), 1.5));
+    const th = lerp(-0.4, 0.8, eio(e));
+    bl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    let d = `M0 0H${W}V${H}H0Z`;
+    const v = [];
+    for (let i = 0; i < 6; i++) v.push([cx + Math.cos(th + (i * Math.PI) / 3) * R, cy + Math.sin(th + (i * Math.PI) / 3) * R]);
+    if (R > 0) d += 'M' + v.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('L') + 'Z';
+    dk.setAttribute('d', d);
+    const L = Math.hypot(W, H);
+    lines.forEach((ln, i) => {
+      const a = v[i], b = v[(i + 1) % 6];
+      const dx = a[0] - b[0], dy = a[1] - b[1], n = Math.hypot(dx, dy) || 1;
+      ln.setAttribute('x1', a[0]); ln.setAttribute('y1', a[1]);
+      ln.setAttribute('x2', a[0] + (dx / n) * L); ln.setAttribute('y2', a[1] + (dy / n) * L);
+      ln.style.display = R > 0 ? '' : 'none';
+    });
   };
-  const back = h('div', 't1-paper2', st, edge(5, '#f6efdf', 30));
-  const front = h('div', 't1-paper', st, edge(9, '#ece4d3', 22) + '<div class="t1-title"><span>01</span><em>About</em></div>');
-  const title = front.querySelector('.t1-title');
-
-  tl.fromTo(g, { scale: 0.42, rotation: -8, svgOrigin: '50 50' }, { scale: 3.6, rotation: 24, svgOrigin: '50 50', ease: 'power1.in', duration: 0.85 }, 0)
-    .to(g, { opacity: 0, duration: 0.3 }, 0.55)
-    .fromTo(back, { y: () => st.clientHeight + 70 }, { y: 0, ease: 'power2.out', duration: 0.8, immediateRender: true, invalidateOnRefresh: true }, 0.12)
-    .fromTo(front, { y: () => st.clientHeight + 70 }, { y: 0, ease: 'power2.inOut', duration: 0.78, immediateRender: true, invalidateOnRefresh: true }, 0.2)
-    .fromTo(title, { y: '24vh' }, { y: '0vh', ease: 'power2.out', duration: 0.6 }, 0.35);
+  ctx.update.push(draw);
+  draw(0);
+  tl.fromTo(bloom, { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.1).to(bloom, { opacity: 0, duration: 0.25 }, 0.72)
+    .fromTo(brackets, { opacity: 0 }, { opacity: 0.85, duration: 0.2 }, 0.14).to(brackets, { opacity: 0, duration: 0.18 }, 0.74)
+    .fromTo(fb, { opacity: 0, scale: 2, svgOrigin: '50 50' }, { opacity: 1, scale: 1, svgOrigin: '50 50', ease: 'power3.out', duration: 0.22 }, 0.22)
+    .to(fb, { opacity: 0, duration: 0.15 }, 0.74)
+    .fromTo(af, { opacity: 0 }, { opacity: 0.8, duration: 0.1 }, 0.42).to(af, { opacity: 0, duration: 0.14 }, 0.74);
 }
 
 /* ---------------------------------------------------------------- 2 · About → Work
-   The page becomes an index: ruled bars slide in from alternating sides carrying the project names. */
-function t2({ st, tl }) {
-  const names = ['Index', 'Forecasting', 'The Ledger', 'Travel Without Borders', 'M.G. Drive Pro', 'Economic Dashboard', 'Mind Canvas', 'Job tracker'];
-  const bars = names.map((n, i) => {
-    const b = h('div', 't2-bar', st);
-    b.style.top = i * 12.5 + '%'; b.style.height = '12.6%';
-    const lab = h('div', 't2-lab', b, `<b>0${i}</b><span>${n}</span><i>${n}</i>`);
-    tl.fromTo(b, { xPercent: i % 2 ? 101 : -101 }, { xPercent: 0, ease: 'power3.out', duration: 0.4 }, 0.03 + i * 0.058)
-      .fromTo(lab, { x: i % 2 ? '14vw' : '-14vw' }, { x: i % 2 ? '-14vw' : '14vw', ease: 'none', duration: 1 }, 0)
-      .to(lab, { opacity: 0, duration: 0.14 }, 0.86);
+   The bars are the real index rows: they slide in carrying the actual project titles and land exactly where the page has them. */
+function t2({ st, tl, next, ctx }) {
+  const items = [...next.querySelectorAll('.index-list li')];
+  const list = next.querySelector('.index-list');
+  const top = h('div', 't2-band', st), bot = h('div', 't2-band', st);
+  const rows = items.map((li, i) => {
+    const b = h('div', 't2-band' + (i === items.length - 1 ? ' last' : ''), st);
+    const inner = h('div', 't2-inner', b);
+    const ol = h('ol', 'index-list', inner);
+    const c = li.cloneNode(true);
+    const a = c.querySelector('a'); a.removeAttribute('href'); a.setAttribute('tabindex', '-1');
+    ol.appendChild(c);
+    ol.style.cssText = '--s-ink:#f2efe8;--s-mut:#9a9aa2;--s-acc:#ff7a45;--s-line:rgba(255,255,255,.16);color:#f2efe8';
+    return { li, b, inner };
   });
-  return bars;
+  const offY = (el) => { let y = 0, e = el; while (e && e !== next) { y += e.offsetTop; e = e.offsetParent; } return y; };
+  const measure = () => {
+    const H = st.clientHeight, lr = list.getBoundingClientRect();
+    rows.forEach((r) => {
+      r.b.style.top = offY(r.li) + 'px'; r.b.style.height = r.li.offsetHeight + 'px';
+      r.inner.style.left = lr.left + 'px'; r.inner.style.width = lr.width + 'px';
+    });
+    const first = offY(rows[0].li), last = offY(rows[rows.length - 1].li) + rows[rows.length - 1].li.offsetHeight;
+    top.style.top = '0px'; top.style.height = first + 'px';
+    bot.style.top = last + 'px'; bot.style.height = Math.max(0, H - last) + 'px';
+  };
+  ctx.refresh.push(measure);
+  measure();
+  tl.fromTo(top, { yPercent: -101 }, { yPercent: 0, ease: 'power3.out', duration: 0.34 }, 0.02);
+  rows.forEach((r, i) => {
+    const dir = i % 2 ? 1 : -1;
+    tl.fromTo(r.b, { xPercent: dir * 101 }, { xPercent: 0, ease: 'power3.out', duration: 0.36 }, 0.06 + i * 0.07)
+      .fromTo(r.inner, { x: dir * 16 + 'vw' }, { x: '0vw', ease: 'power3.out', duration: 0.62 }, 0.06 + i * 0.07);
+  });
+  tl.fromTo(bot, { yPercent: 101 }, { yPercent: 0, ease: 'power3.out', duration: 0.34 }, 0.42);
 }
 
 /* ---------------------------------------------------------------- 3 · Work → Forecasting
@@ -155,40 +186,22 @@ function t3({ st, tl, gsap, to, ctx }) {
 }
 
 /* ---------------------------------------------------------------- 4 · Forecasting → Ledger
-   The model's output scrolls away as a ledger page is turned in from the right and the books are totalled. */
-function t4({ st, tl, ctx }) {
+   A split-flap board: navy data tiles flip in a wave from the centre to reveal the ledger's paper. */
+function t4({ st, tl }) {
   const rng = rngFrom(44);
-  let txt = '';
-  for (let i = 0; i < 40; i++) txt += Array.from({ length: 6 }, () => (rng() * 9).toFixed(4)).join('   ') + '\n';
-  const data = h('div', 't4-data', st, txt);
-  const page = h('div', 't4-page', st);
-  const fold = h('div', 't4-fold', st);
-  const sheet = h('div', 't4-sheet', page);
-  const labels = ['Opening balance', 'Receipts', 'Payments', 'Transfers', 'Adjustments', 'Accruals', 'Rounding', 'Reserve'];
-  const vals = labels.map(() => Math.round((rng() * 8000 + 900) * 100) / 100);
-  const rows = labels.map((l, i) => {
-    const r = h('div', 't4-row', sheet, `<span>${l}</span><span class="fig">0.00</span><i class="rule"></i>`);
-    r.style.top = (i * 10.5) + '%';
-    return { r, fig: r.querySelector('.fig'), rule: r.querySelector('.rule'), v: vals[i], at: 0.38 + i * 0.05 };
-  });
-  const total = h('div', 't4-row total', sheet, '<span>Balance</span><span class="fig">0.00</span><i class="rule"></i>');
-  total.style.top = (8 * 10.5 + 3) + '%';
-  const tf = total.querySelector('.fig');
-  const sum = vals.reduce((a, b) => a + b, 0);
-  const stamp = h('div', 't4-stamp', sheet, 'Balanced');
-  const fmt = (v) => v.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  tl.fromTo(data, { y: 0, opacity: 1 }, { y: '-30vh', opacity: 0.1, duration: 0.7 }, 0)
-    .fromTo(page, { '--edge': '100%' }, { '--edge': '0%', ease: 'power2.inOut', duration: 0.5 }, 0.08)
-    .fromTo(fold, { '--edge': '100%' }, { '--edge': '0%', ease: 'power2.inOut', duration: 0.5 }, 0.08)
-    .to(fold, { opacity: 0, duration: 0.05 }, 0.55);
-  rows.forEach((o) => tl.fromTo(o.rule, { scaleX: 0 }, { scaleX: 1, ease: 'power2.out', duration: 0.1 }, o.at - 0.04));
-  tl.fromTo(total.querySelector('.rule'), { scaleX: 0 }, { scaleX: 1, ease: 'power2.out', duration: 0.1 }, 0.84)
-    .fromTo(stamp, { opacity: 0, scale: 1.7 }, { opacity: 0.9, scale: 1, ease: 'power3.in', duration: 0.07 }, 0.93);
-  ctx.update.push((p) => {
-    rows.forEach((o) => { o.fig.textContent = fmt(o.v * eio(clamp((p - o.at) / 0.1))); });
-    tf.textContent = fmt(sum * smooth(0.8, 0.93, p));
-  });
+  const mobile = window.innerWidth < 720;
+  const cols = mobile ? 6 : 12, rows = mobile ? 9 : 7;
+  const grid = h('div', 't4-grid', st);
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  const digit = () => String(Math.floor(rng() * 10));
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const t = h('div', 't4-tile', grid, `<div class="t4-flip"><div class="t4-face t4-front"><span>${digit()}</span></div><div class="t4-face t4-back"><span>${digit()}</span></div></div>`);
+      const dist = Math.hypot((c + 0.5) / cols - 0.5, (r + 0.5) / rows - 0.5) / 0.71;
+      tl.fromTo(t.firstChild, { rotationX: 0 }, { rotationX: -180, ease: 'power2.inOut', duration: 0.2 }, 0.05 + dist * 0.5 + rng() * 0.05);
+    }
+  }
+  tl.to(grid, { '--dg': 0, '--bl': 0, duration: 0.14 }, 0.82);
 }
 
 /* ---------------------------------------------------------------- 5 · Ledger → Travel
@@ -261,26 +274,42 @@ function t6({ st, tl, to }) {
 }
 
 /* ---------------------------------------------------------------- 7 · Road → Dashboard
-   Bauhaus primitives fly in and assemble; a pale field irises open behind them; then everything is swept away. */
-function t7({ st, tl }) {
+   A chart draws itself on the dark (bars, trend line, ring) while a pale page sweeps across behind a scan line. */
+function chartMarkup(ink) {
+  const bars = [16, 23, 19, 30, 26, 38, 33, 45, 40, 50, 44, 54];
+  const cols = ['#d6201a', '#1b3fb8', '#f2b705'];
+  let g = '';
+  for (let i = 0; i < 6; i++) g += `<line class="gl" x1="12" x2="120" y1="${14 + i * 12}" y2="${14 + i * 12}" stroke="${ink}" stroke-opacity=".28" stroke-width=".3"/>`;
+  bars.forEach((hh, i) => { g += `<rect class="br" x="${14 + i * 8.6}" y="${74 - hh}" width="5.6" height="${hh}" fill="${cols[i % 3]}"/>`; });
+  const pts = bars.map((hh, i) => `${16.8 + i * 8.6},${74 - hh - 8}`).join(' ');
+  g += `<polyline class="ln" points="${pts}" pathLength="1" fill="none" stroke="${ink}" stroke-width=".9" stroke-linejoin="round" stroke-linecap="round"/>`;
+  bars.forEach((hh, i) => { g += `<circle class="mk" cx="${16.8 + i * 8.6}" cy="${74 - hh - 8}" r="1.3" fill="#f2b705" stroke="${ink}" stroke-width=".4"/>`; });
+  ['00', '05', '10', '15', '20'].forEach((y, i) => { g += `<text x="${16.8 + i * 21.5}" y="81" font-family="JetBrains Mono Variable, monospace" font-size="2.6" fill="${ink}" fill-opacity=".7" text-anchor="middle">${y}</text>`; });
+  const seg = [[0, 40, '#d6201a'], [40, 35, '#1b3fb8'], [75, 25, '#f2b705']];
+  g += '<g transform="rotate(-90 140 38)">' + seg.map(([a, l, c]) => `<circle class="rg" data-a="${a}" data-l="${l}" cx="140" cy="38" r="12" fill="none" stroke="${c}" stroke-width="6" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="${-a}"/>`).join('') + '</g>';
+  g += `<text class="ct" x="140" y="39.4" font-family="JetBrains Mono Variable, monospace" font-size="4" font-weight="600" fill="${ink}" text-anchor="middle">100</text>`;
+  return g;
+}
+function t7({ st, tl, gsap }) {
+  const mk = (ink, parent) => svg(chartMarkup(ink), 'layer', parent, { viewBox: '0 0 160 90', preserveAspectRatio: 'xMidYMid meet' });
+  const dark = mk('#ffffff', st);
   const light = h('div', 't7-light', st);
-  const shapes = [
-    { css: 'left:10%;top:16%;width:34vmin;height:34vmin;background:#d6201a;border-radius:50%', from: [-70, -60, -160], out: [-90, -40, -120] },
-    { css: 'left:54%;top:12%;width:28vmin;height:28vmin;background:#1b3fb8', from: [64, -70, 200], out: [90, -60, 160] },
-    { css: 'left:26%;top:50%;width:36vmin;height:32vmin;background:#f2b705;clip-path:polygon(50% 0,100% 100%,0 100%)', from: [-52, 70, -140], out: [-80, 80, -90] },
-    { css: 'left:62%;top:56%;width:32vmin;height:16vmin;background:#111;border-radius:100% 100% 0 0', from: [72, 60, 120], out: [90, 70, 90] },
-    { css: 'left:80%;top:34%;width:9vmin;height:9vmin;background:#1b3fb8;border-radius:50%', from: [60, 0, 0], out: [90, -20, 0] },
-    { css: 'left:46%;top:38%;width:8vmin;height:8vmin;background:#d6201a', from: [0, -64, 180], out: [10, -90, 240] },
-  ].map((o, i) => {
-    const e = h('div', 't7-sh', st); e.style.cssText += ';' + o.css;
-    tl.fromTo(e, { x: o.from[0] + 'vw', y: o.from[1] + 'vh', rotation: o.from[2] }, { x: '0vw', y: '0vh', rotation: 0, ease: 'power3.out', duration: 0.36 }, 0.03 + i * 0.05)
-      .to(e, { x: o.out[0] + 'vw', y: o.out[1] + 'vh', rotation: o.out[2], ease: 'power2.in', duration: 0.3 }, 0.7);
-    return e;
-  });
-  const bar = h('div', 't7-sh', st); bar.style.cssText += ';left:8%;top:47%;width:84%;height:2.6vmin;background:#111';
-  tl.fromTo(light, { clipPath: 'circle(0% at 50% 50%)' }, { clipPath: 'circle(78% at 50% 50%)', ease: 'power2.inOut', duration: 0.34 }, 0.34)
-    .fromTo(bar, { scaleX: 0.02, rotation: -38 }, { scaleX: 1, rotation: -6, ease: 'power3.out', duration: 0.4 }, 0.2)
-    .to(bar, { x: '110vw', rotation: 14, ease: 'power2.in', duration: 0.26 }, 0.74);
+  const lightSvg = mk('#111111', light);
+  const scan = h('div', 't7-scan', st);
+  const both = (sel) => [...dark.querySelectorAll(sel), ...lightSvg.querySelectorAll(sel)];
+  gsap.set(both('.gl'), { scaleX: 0, transformOrigin: '0% 50%' });
+  gsap.set(both('.br'), { scaleY: 0.02, transformOrigin: '50% 100%' });
+  gsap.set(both('.mk'), { scale: 0.01, transformOrigin: '50% 50%' });
+  gsap.set(both('.ct'), { opacity: 0 });
+  tl.to(both('.ct'), { opacity: 1, duration: 0.08 }, 0.52)
+    .fromTo(both('.gl'), { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, ease: 'power2.out', duration: 0.14, stagger: 0.02 }, 0.02)
+    .fromTo(both('.br'), { scaleY: 0.02, transformOrigin: '50% 100%' }, { scaleY: 1, ease: 'power3.out', duration: 0.2, stagger: 0.02 }, 0.1)
+    .fromTo(both('.ln'), { strokeDasharray: 1, strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.26 }, 0.4)
+    .fromTo(both('.mk'), { scale: 0.01, transformOrigin: '50% 50%' }, { scale: 1, ease: 'back.out(2)', duration: 0.08, stagger: 0.02 }, 0.42)
+    .fromTo(light, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'power2.inOut', duration: 0.3 }, 0.52)
+    .fromTo(scan, { left: '0%' }, { left: '100%', ease: 'power2.inOut', duration: 0.3 }, 0.52)
+    .to(scan, { opacity: 0, duration: 0.02 }, 0.82);
+  both('.rg').forEach((c) => { const o = { v: 0 }, L = +c.dataset.l; tl.to(o, { v: L, ease: 'power2.out', duration: 0.26, onUpdate: () => c.setAttribute('stroke-dasharray', `${o.v} 100`) }, 0.3); });
 }
 
 /* ---------------------------------------------------------------- 8 · Dashboard → Glass
@@ -305,17 +334,21 @@ function t8({ st, tl }) {
 }
 
 /* ---------------------------------------------------------------- 9 · Side projects → Experience
-   An ascent: yearly columns climb in steps, then the whole stage rises to cobalt. */
+   A playhead scrubs along a career timeline (real roles and dates), the stage turning cobalt as it goes. */
 function t9({ st, tl }) {
-  const years = [2021, 2022, 2023, 2024, 2025, 2026];
-  const stairs = [16, 30, 44, 58, 72, 86];
-  years.forEach((y, i) => {
-    const c = h('div', 't9-col', st, `<span>${y}</span>`);
-    c.style.left = (i * 100) / 6 + '%'; c.style.width = 100 / 6 + 0.12 + '%';
-    tl.fromTo(c, { yPercent: 100 }, { yPercent: (104 - stairs[i]) / 1.14, ease: 'power3.out', duration: 0.22 }, 0.05 + i * 0.075)
-      .to(c, { yPercent: -11, ease: 'power3.inOut', duration: 0.28 }, 0.58 + (5 - i) * 0.02);
-  });
-  return { cap: (p) => String(2021 + Math.min(5, Math.floor(p * 6))) };
+  const PY = 60, Y0 = 2021, END = 5.6; // vw per year, first year, years travelled
+  const rail = h('div', 't9-rail', st);
+  h('div', 't9-line', rail);
+  for (let q = -4; q <= 29; q++) { const t = h('i', 't9-tick' + (q % 4 === 0 ? ' maj' : ''), rail); t.style.left = (q / 4) * PY + 'vw'; }
+  for (let y = 0; y <= 6; y++) { const e = h('b', 't9-year', rail, String(Y0 + y)); e.style.left = y * PY + 'vw'; }
+  [[2021, 'Site Supervisor', 'Residential renovation · 2021 – Present', 'up'], [2026.32, 'BSc Computer Science', 'Newcastle University · Graduated 2026', 'down'], [2026.62, 'Freelance Web Developer', '2026 – Present', 'up']]
+    .forEach(([y, t, sub, pos]) => { const n = h('div', 't9-node ' + pos, rail, `<i></i><div><b>${t}</b><span>${sub}</span></div>`); n.style.left = (y - Y0) * PY + 'vw'; });
+  h('div', 't9-head', st);
+  const big = h('div', 't9-big', st, String(Y0));
+  const state = { u: 0 };
+  const year = () => Math.min(2026, Math.floor(Y0 + state.u * END));
+  tl.to(state, { u: 1, ease: 'power1.inOut', duration: 0.92, onUpdate: () => { rail.style.transform = `translate3d(${(-END * PY * state.u).toFixed(2)}vw,0,0)`; big.textContent = String(year()); } }, 0.04);
+  return { cap: () => String(year()), bg: 'tween' };
 }
 
 /* ---------------------------------------------------------------- 10 · Skills → Beyond code
@@ -391,15 +424,15 @@ function t11({ st, tl, ctx }) {
 
 /* ---------------------------------------------------------------- wiring */
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Descending → About', ink: ['#ece4d3', '#1d1a14'] },
+  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'] },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'] },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'] },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'] },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#f6efe2'] },
   { before: '#drivepro', fn: t6, label: 'On the road → M.G. Drive Pro', ink: ['#f6efe2', '#f4f4f0'] },
-  { before: '#dashboard', fn: t7, label: 'Composing → Dashboard', ink: ['#f4f4f0', '#111'] },
+  { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#f4f4f0', '#111'] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'] },
-  { before: '#experience', fn: t9, label: 'Climbing → Experience', ink: ['#c8bcf2', '#ffffff'] },
+  { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'] },
   { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'] },
   { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'] },
 ];
@@ -407,12 +440,27 @@ const DEFS = [
 function bgOf(el) {
   if (!el) return '#0a0b0d';
   const v = getComputedStyle(el).getPropertyValue('--s-bg').trim();
-  if (v) return v;
-  return '#0a0b0d'; // hero
+  return v || '#0a0b0d'; // hero
+}
+
+/* Reveal trigger for an element: if it sits in the first screen of a section that follows a transition,
+   its entrance is held until the transition has landed; otherwise it enters as it scrolls into view. */
+export function revealTrigger(el, start = 'top 88%') {
+  const sec = el.closest('.scene');
+  const seam = sec && sec.previousElementSibling;
+  if (seam && seam.classList.contains('seam')) {
+    let y = 0, e = el;
+    while (e && e !== sec) { y += e.offsetTop; e = e.offsetParent; }
+    if (y < window.innerHeight * 0.9) {
+      return { trigger: seam, once: true, start: () => seam.getBoundingClientRect().bottom + window.scrollY - window.innerHeight - 0.06 * (seam.offsetHeight - window.innerHeight) };
+    }
+  }
+  return { trigger: el, start, once: true };
 }
 
 export function initTransitions(gsap, ScrollTrigger) {
   const cleanups = [];
+  const refreshFns = [];
   DEFS.forEach((def) => {
     const next = document.querySelector(def.before);
     if (!next) return;
@@ -428,16 +476,24 @@ export function initTransitions(gsap, ScrollTrigger) {
     capEl.style.color = def.ink[0];
     const pct = capEl.querySelector('.pct');
 
-    const tl = gsap.timeline({
+    // master: scrubbed by scroll. core: the effect (compressed into the first 90%); the last 10% clears the stage onto the live page.
+    const master = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: seam, start: 'top top', end: 'bottom bottom', scrub: 0.4, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: 0.4, invalidateOnRefresh: true },
     });
-    const ctx = { st, tl, gsap, cap: capEl, to: { from, to }, update: [], cleanups, redraw() {} };
+    const tl = gsap.timeline({ defaults: { ease: 'none' } });
+    master.add(tl, 0);
+    tl.timeScale(1 / 0.9);
+    const ctx = { st, tl, gsap, next, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
     ctx.ctx = ctx;
     const res = def.fn(ctx) || {};
-    if (!res.ownsBg) tl.to(st, { backgroundColor: to, duration: 0.02, ease: 'none' }, 0.98);
-    tl.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.44);
-    tl.set({}, {}, 1); // pin the timeline length at exactly 1
+    if (!res.ownsBg && res.bg !== 'tween') tl.to(st, { backgroundColor: to, duration: 0.02, ease: 'none' }, 0.98);
+    if (res.bg === 'tween') { tl.fromTo(st, { backgroundColor: from }, { backgroundColor: to, duration: 0.7 }, 0.1); }
+    tl.set({}, {}, 1);
+
+    master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
+      .fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: 0.07 }, 0.93);
+    master.set({}, {}, 1);
 
     const capFn = res.cap;
     const onUpdate = () => {
@@ -447,7 +503,10 @@ export function initTransitions(gsap, ScrollTrigger) {
     };
     tl.eventCallback('onUpdate', onUpdate);
     onUpdate();
-    cleanups.push(() => { tl.scrollTrigger && tl.scrollTrigger.kill(); tl.kill(); });
+    cleanups.push(() => { master.scrollTrigger && master.scrollTrigger.kill(); master.kill(); });
   });
+  const onRefresh = () => refreshFns.forEach((fn) => fn());
+  ScrollTrigger.addEventListener('refresh', onRefresh);
+  cleanups.push(() => ScrollTrigger.removeEventListener('refresh', onRefresh));
   return () => cleanups.forEach((fn) => { try { fn(); } catch (_) { /* noop */ } });
 }

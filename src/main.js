@@ -11,7 +11,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis'; // the sole smooth-scroll engine (Locomotive Scroll is deliberately not installed)
 import { createHeroScene } from './hero-scene.js';
 import { icons } from './icons.js';
-import { initTransitions } from './transitions.js';
+import { initTransitions, revealTrigger } from './transitions.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -177,7 +177,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const target = hash === '#top' ? 0 : document.querySelector(hash);
     if (target === null) return;
     e.preventDefault();
-    lenis.scrollTo(target, { offset: hash === '#top' ? 0 : -64, duration: 1.4 });
+    lenis.scrollTo(target, { offset: 0, duration: 1.4 });
     if (hash !== '#top') history.replaceState(null, '', hash);
   };
   document.addEventListener('click', onAnchor);
@@ -212,18 +212,18 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const words = splits.get(h);
     gsap.from(words, {
       yPercent: 115, duration: 0.95, ease: 'power4.out', stagger: 0.06,
-      scrollTrigger: { trigger: h, start: 'top 88%', once: true },
+      scrollTrigger: revealTrigger(h),
     });
   });
 
   // Supporting copy + media
   gsap.utils.toArray('[data-reveal]:not(.shot):not(.wipe)').forEach((el) => {
-    gsap.from(el, { y: 32, autoAlpha: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
+    gsap.from(el, { y: 32, autoAlpha: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: revealTrigger(el, 'top 90%') });
   });
   // Media frames wipe open from the top edge while the picture settles (explanatory, seen once)
   gsap.utils.toArray('.shot, .wipe').forEach((el) => {
     const img = el.querySelector('img');
-    const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+    const tl = gsap.timeline({ scrollTrigger: revealTrigger(el) });
     tl.from(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0);
     if (img) tl.from(img, { scale: 1.06, duration: 1.1, ease: 'power3.out' }, 0);
   });
@@ -231,7 +231,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     if (group.closest('.hero')) return;
     gsap.from(group.children, {
       y: 28, autoAlpha: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08,
-      scrollTrigger: { trigger: group, start: 'top 88%', once: true },
+      scrollTrigger: revealTrigger(group),
     });
   });
 
