@@ -13,6 +13,14 @@ Each section of the page is its own design world (paper, lab notebook, ledger, p
 - Self-hosted fonts via Fontsource: Bricolage Grotesque, Instrument Serif, JetBrains Mono
 - Solar icon set via Iconify (inlined as SVG)
 
+## Run on Replit
+
+1. Import this repo into Replit (Create Repl → Import from GitHub).
+2. Press **Run**. The `.replit` file runs `npm run dev` (Vite on port 5173, mapped to port 80), and Replit installs dependencies automatically.
+3. To publish, use **Deploy → Static**. The build command is `npm run build` and the public directory is `dist` (both preset in `.replit`).
+
+The dev server listens on `0.0.0.0` and accepts any host so Replit's proxied preview URL works.
+
 ## Run it
 
 ```bash

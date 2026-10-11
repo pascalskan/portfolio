@@ -1,0 +1,16 @@
+modules = ["nodejs-20"]
+run = "npm run dev"
+hidden = [".config", "package-lock.json", "node_modules", "dist"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+# Static deployment: Replit runs the build, then serves ./dist
+deploymentTarget = "static"
+build = ["npm", "run", "build"]
+publicDir = "dist"
+
+[[ports]]
+localPort = 5173
+externalPort = 80

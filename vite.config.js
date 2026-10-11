@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 // Emit a classic (non-module) script so dist/index.html also opens by double-click from disk.
 const classicScript = () => ({
   name: 'classic-script',
+  apply: 'build', // dev server needs the native ES module script
   enforce: 'post',
   transformIndexHtml(html) {
     html = html.replace(/ crossorigin/g, '');
@@ -19,5 +20,9 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rollupOptions: { output: { format: 'iife', inlineDynamicImports: true } },
   },
+  // Replit (and other hosted dev environments) serve the app on a proxied hostname:
+  // listen on all interfaces and accept any Host header.
+  server: { host: '0.0.0.0', port: 5173, strictPort: true, allowedHosts: true },
+  preview: { host: '0.0.0.0', port: 4173, strictPort: true, allowedHosts: true },
   plugins: [classicScript()],
 });
