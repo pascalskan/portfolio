@@ -45,6 +45,10 @@ public/media/         photos and video thumbnail
 public/shots/         project screenshots (see public/shots/README.txt)
 ```
 
+## Scroll transitions
+
+Every section change has its own scrubbed transition (`src/transitions.js`, `src/transitions.css`). Each one is a tall block with a sticky stage; scrolling through it drives a GSAP timeline, starting on the previous section's background and ending on the next one's. The twelve scenes are joined by eleven different transitions: torn paper, index bars, a scatter-to-forecast fit, a ledger page turn, a globe and flight route, a road drive, Bauhaus assembly, frosted glass, an ascending staircase, a barbell being loaded, and a rising heat front.
+
 ## Deploying
 
 Workflow: edit locally, push to `main` on GitHub, then pull in Replit (Git tab → Pull) and redeploy. The site is published from Replit; there is no GitHub Pages workflow.

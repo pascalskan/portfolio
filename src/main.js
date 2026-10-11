@@ -4,12 +4,14 @@ import '@fontsource/instrument-serif/400.css';
 import '@fontsource/instrument-serif/400-italic.css';
 import './style.css';
 import './scenes.css';
+import './transitions.css';
 
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis'; // the sole smooth-scroll engine (Locomotive Scroll is deliberately not installed)
 import { createHeroScene } from './hero-scene.js';
 import { icons } from './icons.js';
+import { initTransitions } from './transitions.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -163,6 +165,9 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   gsap.ticker.add(tick);
   gsap.ticker.lagSmoothing(0);
   cleanups.push(() => { gsap.ticker.remove(tick); lenis.destroy(); });
+
+  // Scroll transitions between sections (DOM is inserted before any other ScrollTrigger is measured)
+  cleanups.push(initTransitions(gsap, ScrollTrigger));
 
   // Anchor links go through Lenis so there is a single scroll controller.
   const onAnchor = (e) => {
