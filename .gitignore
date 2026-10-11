@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+# originals and working files stay local
+photos/
+_to_delete*/
+*.zip
+*.mp4
+*.MP4

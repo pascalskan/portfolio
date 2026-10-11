@@ -1,0 +1,266 @@
+import '@fontsource-variable/bricolage-grotesque';
+import '@fontsource-variable/jetbrains-mono';
+import '@fontsource/instrument-serif/400.css';
+import '@fontsource/instrument-serif/400-italic.css';
+import './style.css';
+import './scenes.css';
+
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis'; // the sole smooth-scroll engine (Locomotive Scroll is deliberately not installed)
+import { createHeroScene } from './hero-scene.js';
+import { icons } from './icons.js';
+
+gsap.registerPlugin(ScrollTrigger);
+
+const root = document.documentElement;
+// Motion is always on by the site owner's choice.
+const reduced = false;
+const cleanups = [];
+
+/* ---------- Icons (Solar via Iconify) ---------- */
+document.querySelectorAll('[data-icon]').forEach((el) => {
+  const body = icons[el.dataset.icon];
+  if (body) el.innerHTML = `<svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false">${body}</svg>`;
+});
+
+const yr = document.getElementById('year');
+if (yr) yr.textContent = new Date().getFullYear();
+
+/* ---------- Mobile nav ---------- */
+const toggle = document.querySelector('.nav-toggle');
+const nav = document.getElementById('nav');
+function setNav(open) {
+  nav.classList.toggle('open', open);
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.querySelector('.nav-toggle-label').textContent = open ? 'Close' : 'Menu';
+}
+toggle.addEventListener('click', () => setNav(!nav.classList.contains('open')));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && nav.classList.contains('open')) { setNav(false); toggle.focus(); }
+});
+nav.addEventListener('click', (e) => { if (e.target.closest('a')) setNav(false); });
+
+/* ---------- Split headings into words (accessible name preserved) ---------- */
+function splitWords(el) {
+  const tmp = el.cloneNode(true);
+  tmp.querySelectorAll('br').forEach((b) => b.replaceWith(' '));
+  const label = tmp.textContent.replace(/\s+/g, ' ').trim();
+  const sr = document.createElement('span');
+  sr.className = 'sr';
+  sr.textContent = label;
+  const vis = document.createElement('span');
+  vis.className = 'split';
+  vis.setAttribute('aria-hidden', 'true');
+  const words = [];
+
+  const walk = (node, parent) => {
+    node.childNodes.forEach((n) => {
+      if (n.nodeType === 3) {
+        n.textContent.split(/\s+/).filter(Boolean).forEach((w) => {
+          const outer = document.createElement('span');
+          outer.className = 'w';
+          const inner = document.createElement('span');
+          inner.className = 'wi';
+          inner.textContent = w;
+          outer.appendChild(inner);
+          parent.appendChild(outer);
+          parent.appendChild(document.createTextNode(' '));
+          words.push(inner);
+        });
+      } else if (n.nodeName === 'BR') {
+        parent.appendChild(document.createElement('br'));
+      } else if (n.nodeType === 1) {
+        const clone = n.cloneNode(false);
+        parent.appendChild(clone);
+        walk(n, clone);
+      }
+    });
+  };
+  walk(el, vis);
+  el.textContent = '';
+  el.append(sr, vis);
+  return words;
+}
+
+const headings = [...document.querySelectorAll('[data-split]')];
+const splits = new Map(headings.map((h) => [h, splitWords(h)]));
+
+/* ---------- Active nav ---------- */
+const navLinks = [...document.querySelectorAll('#nav a[href^="#"]')];
+const byId = Object.fromEntries(navLinks.map((a) => [a.getAttribute('href').slice(1), a]));
+function setActive(id) {
+  navLinks.forEach((a) => { a.classList.remove('active'); a.removeAttribute('aria-current'); });
+  if (byId[id]) { byId[id].classList.add('active'); byId[id].setAttribute('aria-current', 'location'); }
+}
+
+/* ---------- Hero WebGL scene (optional; static poster otherwise) ---------- */
+const stage = document.querySelector('.hero-stage');
+let scene = null;
+const picker = document.querySelector('.bg-picker');
+{
+  let bg = 'contours';
+  try {
+    bg = new URLSearchParams(location.search).get('bg') || localStorage.getItem('bg') || 'contours';
+  } catch (_) { /* noop */ }
+  if (!['contours', 'network', 'ripple', 'waves', 'aurora', 'halftone'].includes(bg)) bg = 'contours';
+  scene = createHeroScene({
+    stage,
+    canvas: stage.querySelector('.hero-canvas'),
+    onFail: () => { stage.classList.remove('gl-on'); if (picker) picker.hidden = true; },
+    variant: bg,
+  });
+  if (scene) {
+    stage.classList.add('gl-on');
+    cleanups.push(scene.destroy);
+    if (picker) {
+      picker.hidden = false;
+      const mark = (name) => picker.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bg === name)));
+      mark(bg);
+      picker.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-bg]');
+        if (!b) return;
+        scene.setVariant(b.dataset.bg);
+        mark(b.dataset.bg);
+        try { localStorage.setItem('bg', b.dataset.bg); } catch (_) { /* noop */ }
+      });
+    }
+  }
+}
+
+/* ---------- Video: optional YouTube (privacy-enhanced) facade; falls back to the local file ---------- */
+const reel = document.querySelector('.reel[data-youtube]');
+const ytId = reel && reel.dataset.youtube.trim();
+if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
+  const video = reel.querySelector('video');
+  const poster = video.getAttribute('poster');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'yt-facade';
+  btn.setAttribute('aria-label', 'Play video: ' + video.getAttribute('aria-label'));
+  btn.style.backgroundImage = `url("${poster}")`;
+  btn.innerHTML = '<span class="yt-play" aria-hidden="true"></span>';
+  btn.addEventListener('click', () => {
+    // YouTube refuses embeds with no web origin (error 153), e.g. when the page is opened straight from disk.
+    if (location.protocol === 'file:') { window.open(`https://youtu.be/${ytId}`, '_blank', 'noopener'); return; }
+    const f = document.createElement('iframe');
+    f.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+    f.title = video.getAttribute('aria-label');
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    f.className = 'yt-frame';
+    btn.replaceWith(f);
+  });
+  video.replaceWith(btn);
+}
+
+{
+  /* ---------- Lenis <-> GSAP ScrollTrigger ---------- */
+  const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true });
+  lenis.on('scroll', ScrollTrigger.update);
+  const tick = (time) => lenis.raf(time * 1000);
+  gsap.ticker.add(tick);
+  gsap.ticker.lagSmoothing(0);
+  cleanups.push(() => { gsap.ticker.remove(tick); lenis.destroy(); });
+
+  // Anchor links go through Lenis so there is a single scroll controller.
+  const onAnchor = (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const hash = a.getAttribute('href');
+    const target = hash === '#top' ? 0 : document.querySelector(hash);
+    if (target === null) return;
+    e.preventDefault();
+    lenis.scrollTo(target, { offset: hash === '#top' ? 0 : -64, duration: 1.4 });
+    if (hash !== '#top') history.replaceState(null, '', hash);
+  };
+  document.addEventListener('click', onAnchor);
+  cleanups.push(() => document.removeEventListener('click', onAnchor));
+
+  // Page progress hairline
+  gsap.to('.progress', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.2 } });
+
+  // Nav spy: every scene declares which nav item it belongs to
+  document.querySelectorAll('[data-nav]').forEach((sec) => {
+    ScrollTrigger.create({
+      trigger: sec, start: 'top 55%', end: 'bottom 55%',
+      onToggle: (self) => { if (self.isActive) setActive(sec.dataset.nav); },
+    });
+  });
+
+  // Hero intro (nav, headline text and CTA stay readable throughout: only transforms / supporting fades)
+  const heroWords = splits.get(document.querySelector('.hero h1')) || [];
+  const intro = gsap.timeline({ defaults: { ease: 'power4.out' } });
+  intro
+    .from(heroWords, { yPercent: 115, duration: 1.1, stagger: 0.07 }, 0.1)
+    .from('.hero .eyebrow', { y: 14, autoAlpha: 0, duration: 0.8 }, 0)
+    .from('.hero .lede', { y: 24, autoAlpha: 0, duration: 0.9 }, 0.7)
+    .from('.hero .actions .btn', { y: 16, duration: 0.8, stagger: 0.08 }, 0.8)
+    .from('.hero .hint', { autoAlpha: 0, duration: 0.8 }, 1.2)
+    .from('.hero .stats > div', { y: 24, autoAlpha: 0, duration: 0.8, stagger: 0.08 }, 1.0)
+    .from('.hero-canvas', { autoAlpha: 0, duration: 1.6, ease: 'power2.out' }, 0.2);
+
+  // Word-by-word heading reveals
+  headings.forEach((h) => {
+    if (h.closest('.hero')) return;
+    const words = splits.get(h);
+    gsap.from(words, {
+      yPercent: 115, duration: 0.95, ease: 'power4.out', stagger: 0.06,
+      scrollTrigger: { trigger: h, start: 'top 88%', once: true },
+    });
+  });
+
+  // Supporting copy + media
+  gsap.utils.toArray('[data-reveal]:not(.shot):not(.wipe)').forEach((el) => {
+    gsap.from(el, { y: 32, autoAlpha: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
+  });
+  // Media frames wipe open from the top edge while the picture settles (explanatory, seen once)
+  gsap.utils.toArray('.shot, .wipe').forEach((el) => {
+    const img = el.querySelector('img');
+    const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+    tl.from(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0);
+    if (img) tl.from(img, { scale: 1.06, duration: 1.1, ease: 'power3.out' }, 0);
+  });
+  gsap.utils.toArray('[data-stagger]').forEach((group) => {
+    if (group.closest('.hero')) return;
+    gsap.from(group.children, {
+      y: 28, autoAlpha: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08,
+      scrollTrigger: { trigger: group, start: 'top 88%', once: true },
+    });
+  });
+
+  // Beyond code: the lifter rises in front of the calibrated plate as you scroll in; the plate turns slowly
+  const stageEl = document.querySelector('.iron-stage');
+  if (stageEl) {
+    const tl = gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: stageEl, start: 'top 85%', end: 'bottom 35%', scrub: 0.6 } });
+    tl.fromTo('.plate', { rotation: -35, scale: 0.9 }, { rotation: 20, scale: 1 }, 0)
+      .fromTo('.lifter', { yPercent: 22, scale: 0.9, autoAlpha: 0 }, { yPercent: 0, scale: 1, autoAlpha: 1, ease: 'power2.out' }, 0.05);
+  }
+
+  // The one scrubbed sequence: the bars *are* the argument, so they are drawn by scroll.
+  const chart = document.querySelector('[data-chart]');
+  if (chart) {
+    const fills = chart.querySelectorAll('.fill');
+    gsap.fromTo(fills, { scaleX: 0 }, {
+      scaleX: 1, ease: 'none', stagger: 0.35,
+      scrollTrigger: { trigger: chart, start: 'top 80%', end: 'bottom 50%', scrub: 0.6 },
+    });
+  }
+
+  // Refresh measurements after fonts and media settle
+  const refresh = () => ScrollTrigger.refresh();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+  window.addEventListener('load', refresh, { once: true });
+  cleanups.push(() => ScrollTrigger.getAll().forEach((t) => t.kill()), () => intro.kill());
+}
+
+/* ---------- Teardown ---------- */
+let torn = false;
+function teardown() {
+  if (torn) return;
+  torn = true;
+  cleanups.forEach((fn) => { try { fn(); } catch (_) { /* noop */ } });
+}
+window.addEventListener('pagehide', teardown);
+if (import.meta.hot) import.meta.hot.dispose(teardown);
