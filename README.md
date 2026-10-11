@@ -47,7 +47,7 @@ public/shots/         project screenshots (see public/shots/README.txt)
 
 ## Deploying
 
-A GitHub Actions workflow (`.github/workflows/deploy.yml`) builds the site and publishes it to GitHub Pages on every push to `main`. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**.
+Workflow: edit locally, push to `main` on GitHub, then pull in Replit (Git tab → Pull) and redeploy. The site is published from Replit; there is no GitHub Pages workflow.
 
 ## Accessibility and performance
 
