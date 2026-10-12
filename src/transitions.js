@@ -239,7 +239,10 @@ function t5({ st, tl, to, ctx, next }) {
   stamp.classList.add('t5-stamp');
   stamp.innerHTML = stamp.innerHTML.replace(/pm-c/g, 'pm-c2');
   stamp.style.color = '#fed700';
-  st.appendChild(stamp);
+  const sw = h('div', 't5-sw', st); // wrapper so the stage's stamp can fade away while the real section (with its own stamp) rises in
+  sw.style.cssText = 'position:absolute;inset:0;pointer-events:none';
+  sw.appendChild(stamp);
+  if (ctx.master) ctx.master.fromTo(sw, { opacity: 1 }, { opacity: 0, ease: 'none', duration: 0.07, immediateRender: false }, ctx.core + 0.01);
   const M = { x: 0, y: 0, w: 1, dx: 0, dy: 0, sA: 1.2 };
   const S = { a: 0, g: 0 };
   const pose = () => {
@@ -501,9 +504,9 @@ function t11({ st, tl, ctx }) {
 const DEFS = [
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
-  { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },
-  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.94, fade: 0.012 },
-  { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.6, fade: 0.36 },
+  { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 330, over: true, riseFade: true, core: 0.70 },
+  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 360, over: true, riseFade: true, core: 0.72 },
+  { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 300, over: true, riseFade: true, core: 0.667 },
   { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.1, 0.12] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
   { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 300, land: 0.88, fade: 0.09 },
@@ -548,6 +551,9 @@ export function initTransitions(gsap, ScrollTrigger) {
     seam.style.setProperty('--T', (def.T || 150) * (mobile ? 0.8 : 1) + 'vh');
     seam.style.zIndex = String(10 + idx * 2);
     if (def.over) { seam.dataset.over = '1'; next.style.position = 'relative'; next.style.zIndex = String(11 + idx * 2); }
+    if (def.over && def.riseFade) { // the section rises over the stage while fading in (scrubbed by its own position on screen)
+      gsap.fromTo(next, { opacity: 0 }, { opacity: 1, ease: 'none', scrollTrigger: { trigger: next, start: 'top 98%', end: 'top 50%', scrub: true } });
+    }
     else seam.dataset.land = String(def.land || 0.93);
     // backing: the previous section's colour behind the stage for the whole run-out below that section, so a half-faded stage never shows the page behind it
     const back = def.over ? null : h('div', 'seam-back', seam);
@@ -573,7 +579,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     master.add(tl, lead[0]); // the previous section's last screen scrolls on for a moment before the stage comes in
     const span = def.span || 1;
     tl.timeScale(span / ((def.core || 0.9) - lead[0])); // the effect (tl 0..span) fills the seam up to `core`; nothing dead after it
-    const ctx = { st, tl, gsap, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
+    const ctx = { st, tl, gsap, master, core: def.core || 0.9, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
     ctx.ctx = ctx;
     const res = def.fn(ctx) || {};
     if (!res.ownsBg && res.bg !== 'tween') tl.to(st, { backgroundColor: to, duration: 0.02, ease: 'none' }, 0.98);
@@ -595,6 +601,9 @@ export function initTransitions(gsap, ScrollTrigger) {
         const ny = Math.round(nat); // whole pixels only, so text never sits on a fractional offset (that is what shimmered)
         next.style.transform = m >= m0 && m < 0.999 && ny > 0 ? `translate3d(0, ${-ny}px, 0)` : '';
       };
+      // promote the landing section to its own layer well before the hand-over, so the browser has already painted it
+      // (creating a huge layer in the middle of the scroll is what made the end of the transition hitch)
+      ScrollTrigger.create({ trigger: seam, start: 'top bottom', end: 'bottom top', onToggle: (self) => { next.style.willChange = self.isActive ? 'transform' : ''; } });
       const clear = () => { next.style.transform = ''; };
       ScrollTrigger.addEventListener('refreshInit', clear);
       cleanups.push(() => ScrollTrigger.removeEventListener('refreshInit', clear));
