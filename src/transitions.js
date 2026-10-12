@@ -160,7 +160,8 @@ function t3({ st, tl, to, ctx }) {
   ctx.update.push(draw);
   draw(0);
   tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, duration: 0.5 }, 0.1);
-  tl.to(L.c, { opacity: 0, ease: 'power1.inOut', duration: 0.14 }, 0.8);
+  // once the chart has finished fitting, it sinks as the section rises over it, so the two read as one movement
+  tl.to(L.c, { y: '26vh', opacity: 0, ease: 'power1.in', duration: 0.28 }, 0.72);
   return { ownsBg: true };
 }
 
@@ -478,7 +479,7 @@ function t11({ st, tl, ctx }) {
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
-  { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
+  { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
   { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.6, fade: 0.36 },
