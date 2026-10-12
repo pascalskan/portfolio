@@ -519,17 +519,17 @@ function t11({ st, tl, ctx }) {
 /* ---------------------------------------------------------------- wiring */
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 160, land: 0.92, fade: 0.08, lead: [0.1, 0.14] },
-  { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 170, land: 0.9, fade: 0.1 },
+  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 160, land: 0.92, fade: 0.08, lead: [0.18, 0.14] },
+  { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 150, land: 0.9, fade: 0.1 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
   { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.6, fade: 0.36 },
-  { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.02, 0.12] },
+  { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.1, 0.12] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
   { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 300, land: 0.88, fade: 0.09 },
-  { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08, lead: [0.04, 0.09] },
-  { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'], T: 300, land: 0.88, fade: 0.09, lead: [0.24, 0.12] },
+  { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08, lead: [0.14, 0.09] },
+  { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'], T: 300, land: 0.88, fade: 0.09, lead: [0.3, 0.12] },
 ];
 
 function bgOf(el) {
@@ -587,7 +587,7 @@ export function initTransitions(gsap, ScrollTrigger) {
       scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); } },
     });
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
-    const lead = def.lead || [0.1, 0.1];
+    const lead = def.lead || [0.18, 0.1];
     master.add(tl, lead[0]); // the previous section's last screen scrolls on for a moment before the stage comes in
     tl.timeScale(1 / (0.9 - lead[0]));
     const ctx = { st, tl, gsap, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
