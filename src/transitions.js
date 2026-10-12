@@ -580,7 +580,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     let placeFn = null;
     const master = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); } },
+      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); } },
     });
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
     master.add(tl, 0);
@@ -600,7 +600,7 @@ export function initTransitions(gsap, ScrollTrigger) {
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
       placeFn = (m) => {
-        next.style.transform = m >= m0 && m < 1 ? `translate3d(0, ${(-(1 - m) * (seam.offsetHeight - window.innerHeight)).toFixed(1)}px, 0)` : '';
+        next.style.transform = m >= m0 && m < 0.999 ? `translate3d(0, ${(-(1 - m) * (seam.offsetHeight - window.innerHeight)).toFixed(1)}px, 0)` : '';
       };
       const clear = () => { next.style.transform = ''; };
       ScrollTrigger.addEventListener('refreshInit', clear);
