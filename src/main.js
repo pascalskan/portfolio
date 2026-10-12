@@ -261,7 +261,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   }
 
   // Live embeds: inert until activated (so the page can still be scrolled past), interactive while active.
-  // Leaves interactive mode via the Done button, Escape, or by scrolling the frame out of view (never by pointer movement).
+  // Leaves interactive mode when the pointer leaves the frame, or via Done, Escape, or scrolling the frame out of view.
   const setLive = (box, on) => {
     if (!box) return;
     box.classList.toggle('live', on);
@@ -276,6 +276,8 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const f = box.querySelector('iframe');
     if (!f || f._escBound) return;
     f._escBound = true;
+    // let go of the mouse wheel as soon as the pointer actually leaves the frame (the frame element's own leave event, not a bubbled one)
+    f.addEventListener('mouseleave', () => { if (box.classList.contains('live')) setLive(box, false); });
     const attach = () => { try { f.contentWindow.document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setLive(box, false); }); } catch (_) { /* noop */ } };
     f.addEventListener('load', attach);
     try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentWindow.location.href !== 'about:blank') attach(); } catch (_) { /* noop */ }
