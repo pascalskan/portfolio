@@ -617,9 +617,10 @@ export function initTransitions(gsap, ScrollTrigger) {
     const pct = capEl.querySelector('.pct');
 
     // master: scrubbed by scroll. core: the effect (compressed into the first 90%); the rest hands over to the live page.
+    let placeFn = null;
     const master = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: 0.4, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); } },
     });
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
     master.add(tl, 0);
@@ -634,15 +635,13 @@ export function initTransitions(gsap, ScrollTrigger) {
     master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
       .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: (def.lead || [0, 0.07])[1] }, (def.lead || [0, 0.07])[0]);
     if (!def.over) {
-      const land = def.land || 0.93, fade = def.fade || 0.07;
+      const land = def.land || 0.93, fade = Math.min(def.fade || 0.07, 0.97 - land);
       master.fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
-      const place = () => {
-        const m = master.progress();
+      placeFn = (m) => {
         next.style.transform = m >= m0 && m < 1 ? `translate3d(0, ${(-(1 - m) * (seam.offsetHeight - window.innerHeight)).toFixed(1)}px, 0)` : '';
       };
-      master.eventCallback('onUpdate', place);
       const clear = () => { next.style.transform = ''; };
       ScrollTrigger.addEventListener('refreshInit', clear);
       cleanups.push(() => ScrollTrigger.removeEventListener('refreshInit', clear));
