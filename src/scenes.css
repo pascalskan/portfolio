@@ -257,3 +257,8 @@
   .index-list a:hover { padding-left: 14px; color: var(--c); }
   .skill-row li:hover { background: #fff; color: #1636e8; }
 }
+
+/* Phone inset: the mobile view of the same page, tucked into the frame corner */
+.shot .shot-phone { position: absolute; inset: auto 3% 5% auto; width: 17%; height: auto; border-radius: 14px; border: 3px solid #111; box-shadow: 0 18px 50px -14px rgba(0,0,0,.6); object-fit: cover; background: #111; }
+.shot.missing .shot-phone { display: none; }
+@media (max-width: 720px) { .shot .shot-phone { width: 24%; inset: auto 4% 5% auto; } }

@@ -167,3 +167,7 @@
   .embed-veil:hover span { transform: scale(1.05); }
   .embed-open:hover { color: var(--ember); }
 }
+
+.v-shot { position: relative; }
+.v-shot .v-phone { position: absolute; right: 3%; bottom: 4%; width: 17%; height: auto; border-radius: 14px; border: 3px solid #111; box-shadow: 0 18px 50px -14px rgba(0,0,0,.6); }
+@media (max-width: 720px) { .v-shot .v-phone { width: 24%; } }
