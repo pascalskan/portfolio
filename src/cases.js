@@ -120,9 +120,9 @@ export const CASES = {
     title: 'Global Economic Dashboard',
     meta: 'Coursework · Data visualisation · 2025',
     theme: { bg: '#f4f1ea', ink: '#111111', mut: '#4d4a44', acc: '#b3190f', line: 'rgba(17,17,17,.25)', style: 'bauhaus' },
-    lede: 'An interactive, multi-view dashboard for non-experts to explore economic indicators across 172 countries.',
+    lede: 'An interactive, multi-view dashboard for non-experts to explore economic indicators across 173 countries.',
     facts: [
-      { n: '172', l: 'countries explored' },
+      { n: '173', l: 'countries and territories explored' },
       { n: '3', l: 'coordinated views' },
     ],
     sections: [
@@ -130,6 +130,12 @@ export const CASES = {
         'Three coordinated views: a regional world map, a budget-balance vs inflation bubble chart sized by population, and regional small multiples.',
         'Clicking a country or region highlights it across all views and greys out the rest.',
         'Designed around progressive disclosure for a non-expert audience, with prototypes in Figma and a written design rationale.',
+      ] },
+      { h: 'About the data', items: [
+        '173 countries and territories in five regions: Africa 50, Americas 29, Asia 48, Europe 41, Oceania 5.',
+        "The original source and year of the data file weren't recorded, so the dashboard says so in its own \"About the data\" panel rather than implying a source it can't back up.",
+        'Missing values show as hatched \"No data\" areas and are never counted as zero; medians ignore them, and no country is dropped from any view.',
+        'Fourteen countries have no shape on the 110m world map, so a small-countries strip keeps them visible and clickable.',
       ] },
     ],
     embed: { src: 'dashboard/index.html', title: 'Interactive Global Economic Dashboard' },
