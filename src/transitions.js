@@ -542,7 +542,7 @@ const DEFS = [
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
   { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 300, land: 0.88, fade: 0.09 },
   { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08, lead: [0.04, 0.09] },
-  { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'], T: 280, land: 0.88, fade: 0.12 },
+  { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'], T: 300, land: 0.88, fade: 0.09, lead: [0.24, 0.12] },
 ];
 
 function bgOf(el) {
@@ -600,8 +600,9 @@ export function initTransitions(gsap, ScrollTrigger) {
       scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); } },
     });
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
-    master.add(tl, 0);
-    tl.timeScale(1 / 0.9);
+    const lead = def.lead || [0.1, 0.1];
+    master.add(tl, lead[0]); // the previous section's last screen scrolls on for a moment before the stage comes in
+    tl.timeScale(1 / (0.9 - lead[0]));
     const ctx = { st, tl, gsap, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
     ctx.ctx = ctx;
     const res = def.fn(ctx) || {};
@@ -610,7 +611,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     tl.set({}, {}, 1);
 
     master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
-      .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: (def.lead || [0, 0.07])[1] }, (def.lead || [0, 0.07])[0]);
+      .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: lead[1] }, lead[0]);
     if (!def.over) {
       const land = def.land || 0.93, fade = Math.min(def.fade || 0.07, 0.97 - land);
       master.fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
