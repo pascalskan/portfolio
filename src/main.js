@@ -260,24 +260,36 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     });
   }
 
-  // Live embeds: inert until clicked (so the page can still be scrolled past), interactive while active
+  // Live embeds: inert until activated (so the page can still be scrolled past), interactive while active.
+  // Leaves interactive mode via the Done button, Escape, or by scrolling the frame out of view (never by pointer movement).
   const setLive = (box, on) => {
+    if (!box) return;
     box.classList.toggle('live', on);
+    const veil = box.querySelector('.embed-veil');
+    if (veil) veil.tabIndex = on ? -1 : 0;
     const f = box.querySelector('iframe');
-    if (on && f) { try { f.focus(); } catch (_) { /* noop */ } }
+    if (f) {
+      // keys pressed inside the dashboard never reach this document, so listen for Escape inside it too (same origin)
+      try { if (!f._esc) { f._esc = true; f.contentWindow.document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setLive(box, false); }); } } catch (_) { /* noop */ }
+      if (on) { try { f.focus({ preventScroll: true }); } catch (_) { /* noop */ } }
+    }
   };
-  const onEmbedClick = (e) => {
-    const veil = e.target.closest('.embed-veil');
-    if (veil) { setLive(veil.closest('.embed'), true); return; }
-    const done = e.target.closest('.embed-exit');
+  const onEmbedActivate = (e) => {
+    const veil = e.target.closest && e.target.closest('.embed-veil');
+    if (veil) { e.preventDefault(); setLive(veil.closest('.embed'), true); return; }
+    const done = e.target.closest && e.target.closest('.embed-exit');
     if (done) setLive(done.closest('.embed'), false);
   };
-  const onEmbedLeave = (e) => { const box = e.target.closest && e.target.closest('.embed.live'); if (box && !box.contains(e.relatedTarget)) setLive(box, false); };
   const onEmbedKey = (e) => { if (e.key === 'Escape') document.querySelectorAll('.embed.live').forEach((b) => setLive(b, false)); };
-  document.addEventListener('click', onEmbedClick);
-  document.addEventListener('mouseout', onEmbedLeave);
+  // capture phase on pointerup + click so nothing earlier in the chain can swallow the activation
+  document.addEventListener('pointerup', onEmbedActivate, true);
+  document.addEventListener('click', onEmbedActivate, true);
   document.addEventListener('keydown', onEmbedKey);
-  cleanups.push(() => { document.removeEventListener('click', onEmbedClick); document.removeEventListener('mouseout', onEmbedLeave); document.removeEventListener('keydown', onEmbedKey); });
+  const embedIO = new IntersectionObserver((ents) => ents.forEach((en) => { if (!en.isIntersecting) setLive(en.target, false); }), { threshold: 0 });
+  const watchEmbeds = () => document.querySelectorAll('.embed').forEach((el) => { if (!el._watched) { el._watched = true; embedIO.observe(el); } });
+  watchEmbeds();
+  new MutationObserver(watchEmbeds).observe(document.body, { childList: true, subtree: true });
+  cleanups.push(() => { document.removeEventListener('pointerup', onEmbedActivate, true); document.removeEventListener('click', onEmbedActivate, true); document.removeEventListener('keydown', onEmbedKey); embedIO.disconnect(); });
 
   // Case studies and the 404 rise over the page as hash routes
   cleanups.push(views.destroy);
