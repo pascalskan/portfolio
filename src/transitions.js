@@ -564,7 +564,8 @@ export function initTransitions(gsap, ScrollTrigger) {
     if (!def.over) {
       const land = def.land || 0.93, fade = Math.min(def.fade || 0.07, 0.97 - land);
       master.fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
-      master.fromTo(back, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
+      // the backing is only needed while the stage is still fading in; once it is opaque the backing goes (otherwise it would tint the stage as it fades out over the live section)
+      master.fromTo(back, { opacity: 1 }, { opacity: 0, ease: 'none', duration: 0.004 }, Math.min(lead[0] + lead[1] + 0.01, land - 0.02));
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
       placeFn = (m) => {
