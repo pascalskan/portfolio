@@ -208,7 +208,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
 
   // Word-by-word heading reveals
   headings.forEach((h) => {
-    if (h.closest('.hero')) return;
+    if (h.closest('.hero') || h.hasAttribute('data-dots')) return;
     const words = splits.get(h);
     gsap.from(words, {
       yPercent: 115, duration: 0.95, ease: 'power4.out', stagger: 0.06,

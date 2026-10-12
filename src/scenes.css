@@ -59,7 +59,7 @@
 
 /* ---------- 01 Dissertation: lab notebook, navy / cyan, graph paper ---------- */
 .t-lab { --s-bg: #07122a; --s-ink: #e8f0ff; --s-mut: #94aad0; --s-acc: #4cd2ff; --s-line: rgba(120,170,255,.22);
-  background-image: linear-gradient(rgba(76,210,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(76,210,255,.06) 1px, transparent 1px); background-size: 48px 48px; }
+  background-image: linear-gradient(to bottom, transparent calc(100% - 50vh), var(--s-bg)), linear-gradient(rgba(76,210,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(76,210,255,.06) 1px, transparent 1px); background-size: 100% 100%, 48px 48px, 48px 48px; }
 .t-lab .t-lab .kicker, .t-lab .bar-label, .t-lab .val, .t-lab h3 { font-family: var(--mono); }
 .lab-top { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: end; }
 .t-lab .case-title { font-size: clamp(2rem, 4.6vw, 4.4rem); max-width: 18ch; }
@@ -85,7 +85,7 @@
 
 /* ---------- 02 Ledger: ruled paper, sage / green ---------- */
 .t-ledger { --s-bg: #dde7d8; --s-ink: #0d2a1f; --s-mut: #3a5546; --s-acc: #0a6a47; --s-line: rgba(13,42,31,.28);
-  background-image: repeating-linear-gradient(to bottom, transparent 0 39px, rgba(13,42,31,.08) 39px 40px); }
+  background-image: linear-gradient(to bottom, transparent calc(100% - 50vh), var(--s-bg)), repeating-linear-gradient(to bottom, transparent 0 39px, rgba(13,42,31,.08) 39px 40px); }
 .t-ledger::before { content: ""; position: absolute; z-index: -1; inset: 0 auto 0 clamp(6px, 2.2vw, 32px); width: 6px; border-inline: 1px solid rgba(178,70,58,.6); }
 .t-ledger .case-title { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(5rem, 15vw, 15rem); letter-spacing: -.045em; line-height: .85; max-width: none; }
 .t-ledger .case-lede { margin-top: clamp(40px, 5vw, 72px); font-family: var(--serif); font-size: clamp(1.4rem, 1rem + 1.4vw, 2.2rem); line-height: 1.2; max-width: 36ch; }
@@ -101,27 +101,26 @@
 .rules li::before { content: "R-" counter(r, decimal-leading-zero); font-family: var(--mono); font-size: .76rem; color: var(--s-acc); padding-top: .2em; }
 
 /* ---------- 03 Travel Without Borders: postcard, teal / sunrise ---------- */
-.t-travel { --s-bg: #0b3a53; --s-ink: #f6efe2; --s-mut: #a8c4d4; --s-acc: #ffb25b; --s-line: rgba(246,239,226,.26);
-  background-image: radial-gradient(60% 55% at 88% 0%, rgba(255,178,91,.34), transparent 70%), radial-gradient(40% 40% at 0% 100%, rgba(255,178,91,.12), transparent 70%); }
+.t-travel { --s-bg: #1e5630; --s-ink: #ffffff; --s-mut: #d3e4d8; --s-acc: #fed700; --s-line: rgba(255,255,255,.28); }
 .travel-head { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
 .t-travel .case-title { font-size: clamp(3rem, 9vw, 9rem); max-width: 10ch; letter-spacing: -.045em; line-height: .88; }
-.postmark { flex: none; display: grid; place-content: center; text-align: center; width: clamp(120px, 15vw, 190px); aspect-ratio: 1; border-radius: 50%; border: 2px dashed var(--s-acc); color: var(--s-acc); transform: rotate(-12deg); font-family: var(--mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; }
-.postmark b { font-family: var(--serif); font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 400; letter-spacing: 0; line-height: 1; }
+.postmark { flex: none; width: clamp(120px, 15vw, 210px); aspect-ratio: 1; color: var(--s-acc); transform: rotate(-10deg); }
+.postmark svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .t-travel .shot { border-radius: 8px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.6); max-width: 1180px; }
 .travel-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 5vw, 80px); align-items: start; }
 .tickets { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0; }
-.tickets div { padding: 22px; border: 2px dashed var(--s-acc); border-radius: 16px; background: rgba(255,178,91,.08); }
+.tickets div { padding: 22px; border: 2px dashed var(--s-acc); border-radius: 16px; background: rgba(254,215,0,.08); }
 .tickets dt { font-family: var(--serif); font-size: clamp(3rem, 5vw, 5rem); line-height: .9; color: var(--s-acc); }
 .tickets dd { margin: 10px 0 0; font-size: .88rem; line-height: 1.4; color: var(--s-ink); }
 .t-travel .small { font-size: 1rem; color: var(--s-ink); }
 
 /* ---------- 04 Drive Pro: road, asphalt / amber ---------- */
-.t-road { --s-bg: #17181b; --s-ink: #f4f4f0; --s-mut: #b3b5ba; --s-acc: #ffc21a; --s-line: rgba(255,255,255,.2); padding-bottom: clamp(120px, 14vw, 200px); }
+.t-road { --s-bg: #111111; --s-ink: #fafaf8; --s-mut: #bdbdb8; --s-acc: #0ea5e9; --s-line: rgba(250,250,248,.22); padding-bottom: clamp(120px, 14vw, 200px); }
 .t-road::after { content: ""; position: absolute; left: 0; right: 0; bottom: clamp(48px, 6vw, 84px); height: 8px; background: repeating-linear-gradient(90deg, var(--s-acc) 0 64px, transparent 64px 128px); z-index: -1; }
 .road-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: start; }
 .t-road .case-title { font-weight: 800; font-size: clamp(3rem, 8vw, 8rem); letter-spacing: -.05em; text-transform: uppercase; line-height: .86; }
 .signs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0 0 24px; }
-.signs div { background: var(--s-acc); color: #17181b; border-radius: 18px; padding: 20px; box-shadow: inset 0 0 0 5px #17181b, inset 0 0 0 8px #17181b; outline: 3px solid var(--s-acc); outline-offset: -3px; }
+.signs div { background: #0369a1; color: #fff; border-radius: 18px; padding: 20px; box-shadow: inset 0 0 0 5px var(--s-bg), inset 0 0 0 7px #fff; }
 .signs dt { font-weight: 800; font-size: clamp(2.6rem, 5vw, 4.8rem); letter-spacing: -.05em; line-height: .95; }
 .signs dd { margin: 8px 0 0; font-size: .86rem; line-height: 1.35; font-weight: 500; }
 .t-road .small { color: var(--s-mut); }
@@ -149,7 +148,7 @@
 
 /* ---------- 06 Also built: glass, violet / mint ---------- */
 .t-glass { --s-bg: #120a2e; --s-ink: #f4f0ff; --s-mut: #c8bcf2; --s-acc: #8ef0d0; --s-line: rgba(255,255,255,.22);
-  background-image: radial-gradient(55% 50% at 12% 8%, rgba(110,60,235,.75), transparent 65%), radial-gradient(50% 50% at 92% 80%, rgba(26,111,224,.6), transparent 65%); }
+  background-image: linear-gradient(to bottom, transparent calc(100% - 50vh), var(--s-bg)), radial-gradient(55% 50% at 12% 8%, rgba(110,60,235,.75), transparent 65%), radial-gradient(50% 50% at 92% 80%, rgba(26,111,224,.6), transparent 65%); }
 .t-glass .display-m { margin-bottom: clamp(32px, 5vw, 72px); font-size: clamp(3rem, 9vw, 9rem); }
 .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(16px, 2.4vw, 32px); }
 .mini { position: relative; overflow: hidden; display: flex; flex-direction: column; padding: clamp(28px, 4vw, 52px); min-height: 420px; border-radius: 32px; }

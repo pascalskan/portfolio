@@ -1,6 +1,8 @@
 /* Scroll transitions: one unique, scrubbed sequence between every pair of sections.
-   Each seam = tall block + sticky stage; a GSAP timeline (duration 1) is scrubbed by the scroll through it. */
+   Each seam = tall block + sticky stage that overlaps the last screen of the previous section (the stage fades in over it)
+   and lands on the live next section; a GSAP timeline (duration 1) is scrubbed by the scroll through it. */
 
+let gsap_set = (el, v) => Object.assign(el.style, {});
 const NS = 'http://www.w3.org/2000/svg';
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -41,6 +43,12 @@ function canvasLayer(st, ctx) {
   ro.observe(st);
   ctx.cleanups.push(() => ro.disconnect());
   return { c, g, size, fit };
+}
+
+function offsetBox(el, root) {
+  let x = 0, y = 0, e = el;
+  while (e && e !== root) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+  return { x, y, w: el.offsetWidth, h: el.offsetHeight };
 }
 
 /* ---------------------------------------------------------------- 1 · Hero → About
@@ -85,196 +93,295 @@ function t1({ st, tl, ctx }) {
     .fromTo(af, { opacity: 0 }, { opacity: 0.8, duration: 0.1 }, 0.42).to(af, { opacity: 0, duration: 0.14 }, 0.74);
 }
 
+
 /* ---------------------------------------------------------------- 2 · About → Work
-   The bars are the real index rows: they slide in carrying the actual project titles and land exactly where the page has them. */
-function t2({ st, tl, next, ctx }) {
+   The bars are the real index rows: they slide in already carrying the project titles and land exactly where the page has them. */
+function t2({ st, tl, next, ctx, to }) {
   const items = [...next.querySelectorAll('.index-list li')];
   const list = next.querySelector('.index-list');
   const top = h('div', 't2-band', st), bot = h('div', 't2-band', st);
-  const rows = items.map((li, i) => {
-    const b = h('div', 't2-band' + (i === items.length - 1 ? ' last' : ''), st);
+  const rows = items.map((li) => {
+    const b = h('div', 't2-band', st);
     const inner = h('div', 't2-inner', b);
     const ol = h('ol', 'index-list', inner);
     const c = li.cloneNode(true);
+    c.removeAttribute('data-stagger');
     const a = c.querySelector('a'); a.removeAttribute('href'); a.setAttribute('tabindex', '-1');
     ol.appendChild(c);
     ol.style.cssText = '--s-ink:#f2efe8;--s-mut:#9a9aa2;--s-acc:#ff7a45;--s-line:rgba(255,255,255,.16);color:#f2efe8';
     return { li, b, inner };
   });
-  const offY = (el) => { let y = 0, e = el; while (e && e !== next) { y += e.offsetTop; e = e.offsetParent; } return y; };
+  // the section heading rides in on the top band so nothing has to appear at the hand-over
+  const h2 = next.querySelector('h2'), sp = h2 && h2.querySelector('.split');
+  let h2c = null;
+  if (h2) {
+    h2c = h('div', h2.className, top, sp ? sp.innerHTML : h2.innerHTML);
+    h2c.removeAttribute('data-split'); h2c.style.cssText = 'position:absolute;margin:0;color:#f2efe8';
+    h2c.querySelectorAll('.wi').forEach((e) => { e.style.transform = 'none'; });
+  }
   const measure = () => {
-    const H = st.clientHeight, lr = list.getBoundingClientRect();
+    const H = st.clientHeight, lr = list.getBoundingClientRect(), nb = offsetBox(list, next);
+    if (h2c) { const hb = offsetBox(h2, next); h2c.style.left = hb.x + 'px'; h2c.style.top = hb.y + 'px'; h2c.style.width = hb.w + 'px'; }
     rows.forEach((r) => {
-      r.b.style.top = offY(r.li) + 'px'; r.b.style.height = r.li.offsetHeight + 'px';
+      const bx = offsetBox(r.li, next);
+      r.b.style.top = bx.y + 'px'; r.b.style.height = (r.li.offsetHeight + 1) + 'px';
       r.inner.style.left = lr.left + 'px'; r.inner.style.width = lr.width + 'px';
     });
-    const first = offY(rows[0].li), last = offY(rows[rows.length - 1].li) + rows[rows.length - 1].li.offsetHeight;
-    top.style.top = '0px'; top.style.height = first + 'px';
-    bot.style.top = last + 'px'; bot.style.height = Math.max(0, H - last) + 'px';
+    const lastRow = rows[rows.length - 1], last = offsetBox(lastRow.li, next).y + lastRow.li.offsetHeight;
+    top.style.top = '0px'; top.style.height = (offsetBox(rows[0].li, next).y + 1) + 'px';
+    bot.style.top = (last + 1) + 'px'; bot.style.height = Math.max(0, H - last) + 'px';
   };
   ctx.refresh.push(measure);
   measure();
-  tl.fromTo(top, { yPercent: -101 }, { yPercent: 0, ease: 'power3.out', duration: 0.34 }, 0.02);
+  tl.fromTo(top, { yPercent: -101 }, { yPercent: 0, ease: 'power3.out', duration: 0.3 }, 0.02);
   rows.forEach((r, i) => {
     const dir = i % 2 ? 1 : -1;
-    tl.fromTo(r.b, { xPercent: dir * 101 }, { xPercent: 0, ease: 'power3.out', duration: 0.36 }, 0.06 + i * 0.07)
-      .fromTo(r.inner, { x: dir * 16 + 'vw' }, { x: '0vw', ease: 'power3.out', duration: 0.62 }, 0.06 + i * 0.07);
+    tl.fromTo(r.b, { xPercent: dir * 101 }, { xPercent: 0, ease: 'power3.out', duration: 0.3 }, 0.05 + i * 0.045);
   });
-  tl.fromTo(bot, { yPercent: 101 }, { yPercent: 0, ease: 'power3.out', duration: 0.34 }, 0.42);
+  tl.fromTo(bot, { yPercent: 101 }, { yPercent: 0, ease: 'power3.out', duration: 0.3 }, 0.28)
+    .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.12 }, 0.44);
+  return { ownsBg: true };
 }
 
 /* ---------------------------------------------------------------- 3 · Work → Forecasting
-   Noisy points scattered across the dark drift into a fitted trend; the forecast band opens to the right. */
-function t3({ st, tl, gsap, to, ctx }) {
+   The Work titles dissolve into dots that lift off the page, settle into a fitted trend with its forecast band,
+   then re-form as the letters of the next heading. */
+function t3({ st, tl, to, ctx, prev, next, seam }) {
   const rng = rngFrom(33);
-  const N = 240;
-  const pts = Array.from({ length: N }, (_, i) => {
-    const u = (i + rng() * 0.6) / N;
-    return { u, sx: rng(), sy: rng(), d: rng() * 0.38, n: (rng() - 0.5) * 2, wob: rng() * 6.28 };
-  });
+  const N = 520;
+  const dots = Array.from({ length: N }, (_, i) => ({ u: (i + rng() * 0.6) / N, n: (rng() - 0.5) * 2, d1: rng() * 0.14, d2: rng() * 0.1, wob: rng() - 0.5, r: rng(), ax: 0, ay: 0, tx: 0, ty: 0 }));
   const L = canvasLayer(st, ctx);
   const f = (u) => 0.62 - 0.34 * u + 0.1 * Math.sin(u * 8.2) + 0.05 * Math.sin(u * 19);
   const NOW = 0.6;
+  let pin = 1, ink = [232, 240, 255];
+  const parseRGB = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+  const measure = () => {
+    const W = st.clientWidth, H = st.clientHeight;
+    pin = Math.max(1, seam.offsetHeight - window.innerHeight);
+    // where the Work text sits at the moment the stage takes over
+    const pt = prev.getBoundingClientRect().top, base = window.innerHeight - prev.offsetHeight;
+    const rects = [];
+    prev.querySelectorAll('.index-list .t, .index-list .m, .index-list .n, h2 .split').forEach((el) => {
+      const r = document.createRange(); r.selectNodeContents(el);
+      [...r.getClientRects()].forEach((q) => { const y = base + (q.top - pt); if (q.width > 4 && y > -10 && y + q.height < H + 10) rects.push({ x: q.left, y, w: q.width, h: q.height, a: q.width * q.height }); });
+    });
+    const tot = rects.reduce((s, q) => s + q.a, 0);
+    const rr = rngFrom(7);
+    dots.forEach((d) => {
+      if (!rects.length) { d.ax = rr() * W; d.ay = rr() * H; return; }
+      let t = rr() * tot, q = rects[0];
+      for (const c of rects) { t -= c.a; if (t <= 0) { q = c; break; } }
+      d.ax = q.x + rr() * q.w; d.ay = q.y + q.h * (0.2 + rr() * 0.6);
+    });
+    // the next heading's letters: render it off-screen and sample the pixels
+    const h2 = next.querySelector('h2');
+    let targets = [];
+    if (h2) {
+      const cs = getComputedStyle(h2);
+      ink = parseRGB(cs.color).length === 3 ? parseRGB(cs.color) : ink;
+      const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
+      const og = oc.getContext('2d', { willReadFrequently: true });
+      og.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      if ('letterSpacing' in og && cs.letterSpacing !== 'normal') og.letterSpacing = cs.letterSpacing;
+      og.textBaseline = 'middle'; og.fillStyle = '#fff';
+      const nt = next.getBoundingClientRect().top;
+      let minY = H, maxY = 0;
+      h2.querySelectorAll('.w').forEach((w) => {
+        const wi = w.querySelector('.wi'); if (!wi) return;
+        const x = wi.getBoundingClientRect().left, y = w.getBoundingClientRect().top - nt + wi.offsetHeight / 2;
+        og.fillText(wi.textContent, x, y);
+        minY = Math.min(minY, y - wi.offsetHeight); maxY = Math.max(maxY, y + wi.offsetHeight);
+      });
+      const y0 = Math.max(0, Math.floor(minY)), y1 = Math.min(H, Math.ceil(maxY));
+      if (y1 > y0) {
+        const data = og.getImageData(0, y0, W, y1 - y0).data, step = Math.max(3, Math.round(W / 230));
+        for (let y = 0; y < y1 - y0; y += step) for (let x = 0; x < W; x += step) if (data[(y * W + x) * 4 + 3] > 120) targets.push([x + (rr() - 0.5) * 1.5, y0 + y + (rr() - 0.5) * 1.5]);
+      }
+    }
+    if (targets.length) {
+      targets.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      dots.forEach((d, i) => { const t = targets[Math.min(targets.length - 1, Math.floor((i / N) * targets.length + rr() * 0.5))]; d.tx = t[0]; d.ty = t[1]; d.has = true; });
+    } else dots.forEach((d) => { d.has = false; });
+  };
+  ctx.refresh.push(measure);
+  measure();
   const draw = (p) => {
     const { g, size } = L; const W = size.w, H = size.h;
     g.clearRect(0, 0, W, H);
     const x0 = W * 0.07, x1 = W * 0.93, y0 = H * 0.18, y1 = H * 0.8;
     const X = (u) => x0 + (x1 - x0) * u, Y = (v) => y0 + (y1 - y0) * v;
-    // axes + grid draw in
-    const ga = smooth(0.15, 0.6, p);
-    g.strokeStyle = `rgba(120,170,255,${0.2 * ga})`; g.lineWidth = 1;
+    const ex = 1 - smooth(0.66, 0.84, p);
+    const ga = smooth(0.2, 0.55, p);
+    g.strokeStyle = `rgba(120,170,255,${0.2 * ga * ex})`; g.lineWidth = 1;
     for (let i = 0; i <= 8; i++) { const x = X(i / 8); g.beginPath(); g.moveTo(x, y0); g.lineTo(x, y0 + (y1 - y0) * ga); g.stroke(); }
     for (let i = 0; i <= 5; i++) { const y = Y(i / 5); g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + (x1 - x0) * ga, y); g.stroke(); }
-    // forecast band
-    const bandA = smooth(0.62, 0.92, p);
+    const bandA = smooth(0.5, 0.64, p) * ex;
     if (bandA > 0) {
       g.fillStyle = `rgba(76,210,255,${0.16 * bandA})`; g.beginPath();
       const s0 = Math.floor(NOW * 60);
-      for (let i = s0; i <= 60; i++) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16 * bandA; g.lineTo(X(u), Y(f(u) - w)); }
-      for (let i = 60; i >= s0; i--) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16 * bandA; g.lineTo(X(u), Y(f(u) + w)); }
+      for (let i = s0; i <= 60; i++) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16; g.lineTo(X(u), Y(f(u) - w)); }
+      for (let i = 60; i >= s0; i--) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16; g.lineTo(X(u), Y(f(u) + w)); }
       g.closePath(); g.fill();
       g.setLineDash([6, 6]); g.strokeStyle = `rgba(76,210,255,${0.7 * bandA})`; g.beginPath(); g.moveTo(X(NOW), y0 - 6); g.lineTo(X(NOW), y1 + 6); g.stroke(); g.setLineDash([]);
       g.fillStyle = `rgba(232,240,255,${0.8 * bandA})`; g.font = '500 11px "JetBrains Mono Variable", monospace';
       g.fillText('now', X(NOW) - 28, y0 - 12); g.fillText('forecast →', X(NOW) + 10, y0 - 12);
     }
-    // points: scattered → fitted
-    for (const q of pts) {
-      const t = eio(clamp((p - q.d) / 0.5));
-      const tx = X(q.u), spread = q.u > NOW ? 0.05 + (q.u - NOW) * 0.16 : 0.035;
-      const ty = Y(f(q.u) + q.n * spread);
-      const sx = W * (0.03 + 0.94 * q.sx) + Math.sin(p * 9 + q.wob) * 10, sy = H * (0.08 + 0.84 * q.sy) + Math.cos(p * 7 + q.wob) * 10;
-      const x = lerp(sx, tx, t), y = lerp(sy, ty, t);
-      const k = t;
-      g.fillStyle = `rgba(${Math.round(lerp(154, 76, k))},${Math.round(lerp(154, 210, k))},${Math.round(lerp(162, 255, k))},${lerp(0.55, 0.95, k)})`;
-      g.beginPath();
-      if (q.u > NOW && k > 0.9) { g.strokeStyle = 'rgba(76,210,255,.9)'; g.arc(x, y, 3.2, 0, 6.283); g.stroke(); } else { g.arc(x, y, 2.4, 0, 6.283); g.fill(); }
-    }
-    // trend line draws left → right
-    const lp = smooth(0.5, 0.88, p);
-    if (lp > 0) {
-      g.strokeStyle = '#4cd2ff'; g.lineWidth = 2.5; g.beginPath();
+    const lp = smooth(0.42, 0.62, p);
+    if (lp > 0 && ex > 0) {
+      g.strokeStyle = `rgba(76,210,255,${ex})`; g.lineWidth = 2.5; g.beginPath();
       const n = Math.floor(60 * lp);
       for (let i = 0; i <= n; i++) { const u = i / 60; i ? g.lineTo(X(u), Y(f(u))) : g.moveTo(X(u), Y(f(u))); }
       g.stroke(); g.lineWidth = 1;
+    }
+    const s = Math.min(p, 0.14) * 0.9 * pin; // the dots ride the page's scroll until they let go
+    const vis = smooth(0, 0.05, p);
+    for (const q of dots) {
+      const t1 = eio(clamp((p - 0.14 - q.d1) / 0.4));
+      const t2 = q.has ? eio(clamp((p - 0.66 - q.d2) / 0.2)) : 0;
+      const cx = X(q.u), spread = q.u > NOW ? 0.05 + (q.u - NOW) * 0.16 : 0.035, cy = Y(f(q.u) + q.n * spread);
+      const w1 = Math.sin(t1 * Math.PI) * q.wob * 90, w2 = Math.sin(t2 * Math.PI) * q.wob * 40;
+      let x = lerp(q.ax, cx, t1) + w1, y = lerp(q.ay - s, cy, t1) - w1 * 0.4;
+      if (q.has) { x = lerp(x, q.tx, t2) + w2; y = lerp(y, q.ty, t2); }
+      const k = t1 * (1 - t2), m = t2;
+      const rC = lerp(lerp(242, 76, t1), ink[0], m), gC = lerp(lerp(239, 210, t1), ink[1], m), bC = lerp(lerp(232, 255, t1), ink[2], m);
+      g.fillStyle = `rgba(${rC | 0},${gC | 0},${bC | 0},${vis * lerp(lerp(0.8, 0.95, k), 1, m)})`;
+      g.beginPath();
+      if (q.u > NOW && t1 > 0.9 && t2 < 0.05) { g.strokeStyle = `rgba(76,210,255,${0.9 * vis})`; g.lineWidth = 1; g.arc(x, y, 3.2, 0, 6.283); g.stroke(); } else { g.arc(x, y, lerp(2.3, 1.9, m), 0, 6.283); g.fill(); }
     }
   };
   ctx.redraw = () => draw(tl.progress());
   ctx.update.push(draw);
   draw(0);
-  tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, duration: 0.5 }, 0.1);
+  tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, duration: 0.4 }, 0.12);
   return { ownsBg: true };
 }
 
 /* ---------------------------------------------------------------- 4 · Forecasting → Ledger
-   A split-flap board: navy data tiles flip in a wave from the centre to reveal the ledger's paper. */
+   Ruled ledger rows fill with paper one after another, figures are entered, and the red margin line is ruled down. */
 function t4({ st, tl }) {
   const rng = rngFrom(44);
-  const mobile = window.innerWidth < 720;
-  const cols = mobile ? 6 : 12, rows = mobile ? 9 : 7;
-  const grid = h('div', 't4-grid', st);
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-  const digit = () => String(Math.floor(rng() * 10));
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const t = h('div', 't4-tile', grid, `<div class="t4-flip"><div class="t4-face t4-front"><span>${digit()}</span></div><div class="t4-face t4-back"><span>${digit()}</span></div></div>`);
-      const dist = Math.hypot((c + 0.5) / cols - 0.5, (r + 0.5) / rows - 0.5) / 0.71;
-      tl.fromTo(t.firstChild, { rotationX: 0 }, { rotationX: -180, ease: 'power2.inOut', duration: 0.2 }, 0.05 + dist * 0.5 + rng() * 0.05);
+  const rowsEl = h('div', 't4-rows', st);
+  const n = Math.ceil(window.innerHeight / 40) + 1;
+  const step = 0.5 / n;
+  const figs = ['1,036 → 9', '£ 24,180.00', 'Σ 3,412', 'APPROVED', 'R-01 ✓', '1,961 → 399 KB', 'Dr / Cr', '0 overflow', 'TOTAL  ——', '£ 6,075.50'];
+  for (let i = 0; i < n; i++) {
+    const row = h('div', 't4-row', rowsEl);
+    row.style.top = i * 40 + 'px';
+    row.style.transformOrigin = i % 2 ? '100% 50%' : '0 50%';
+    const at = 0.03 + i * step;
+    tl.fromTo(row, { scaleX: 0 }, { scaleX: 1, ease: 'power3.out', duration: 0.22 }, at);
+    if (i % 3 === 1 && i < n - 2) {
+      const fg = h('div', 't4-fig', rowsEl, figs[(i * 7 + 3) % figs.length]);
+      fg.style.top = i * 40 + 'px'; fg.style.left = 14 + rng() * 52 + 'vw';
+      tl.fromTo(fg, { opacity: 0, x: 14 }, { opacity: 0.72, x: 0, ease: 'power2.out', duration: 0.1 }, at + 0.14).to(fg, { opacity: 0, duration: 0.1 }, 0.84);
     }
   }
-  tl.to(grid, { '--dg': 0, '--bl': 0, duration: 0.14 }, 0.82);
+  const mg = h('div', 't4-margin', st);
+  tl.fromTo(mg, { scaleY: 0 }, { scaleY: 1, ease: 'power2.inOut', duration: 0.24 }, 0.58);
 }
 
 /* ---------------------------------------------------------------- 5 · Ledger → Travel
-   Daylight sky, a turning wireframe globe, and a paper plane that flies a dashed route before the postmark lands. */
-function t5({ st, tl, gsap, to, ctx }) {
+   Daylight sky, a turning wireframe globe and a paper plane on a dashed route. The postmark lands, the world fades
+   slowly and the postmark glides to where it sits on the page. */
+function t5({ st, tl, to, ctx, next }) {
   const rng = rngFrom(55);
+  const clouds = [];
   for (let i = 0; i < 7; i++) {
     const c = h('div', 't5-cloud', st);
     const w = 22 + rng() * 26;
     c.style.cssText = `left:${rng() * 80}vw;top:${6 + rng() * 74}vh;width:${w}vw;height:${w * 0.28}vw`;
     tl.fromTo(c, { x: '30vw' }, { x: `${-(40 + rng() * 80)}vw`, ease: 'none', duration: 1 }, 0);
+    clouds.push(c);
   }
   const merid = 7;
   let ms = '', ls = '';
-  for (let k = 0; k < merid; k++) ms += `<ellipse class="mer" cx="50" cy="30" rx="22" ry="22" fill="none" stroke="rgba(246,239,226,.5)" stroke-width=".22"/>`;
-  [-60, -30, 0, 30, 60].forEach((a) => { const r = (a * Math.PI) / 180, y = 30 + 22 * Math.sin(r), rx = 22 * Math.cos(r); ls += `<line x1="${50 - rx}" y1="${y}" x2="${50 + rx}" y2="${y}" stroke="rgba(246,239,226,.35)" stroke-width=".2"/>`; });
+  for (let k = 0; k < merid; k++) ms += `<ellipse class="mer" cx="50" cy="30" rx="22" ry="22" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".22"/>`;
+  [-60, -30, 0, 30, 60].forEach((a) => { const r = (a * Math.PI) / 180, y = 30 + 22 * Math.sin(r), rx = 22 * Math.cos(r); ls += `<line x1="${50 - rx}" y1="${y}" x2="${50 + rx}" y2="${y}" stroke="rgba(255,255,255,.4)" stroke-width=".2"/>`; });
   const route = 'M6 47 Q50 -16 94 41';
   const v = svg(`
-    <g class="globe"><circle cx="50" cy="30" r="22" fill="rgba(11,58,83,.35)" stroke="rgba(246,239,226,.6)" stroke-width=".3"/>${ls}${ms}</g>
-    <path d="${route}" fill="none" stroke="rgba(255,178,91,.35)" stroke-width=".35" stroke-dasharray=".9 1.3"/>
-    <path class="route" d="${route}" fill="none" stroke="#ffb25b" stroke-width=".55" stroke-linecap="round"/>
-    <circle cx="6" cy="47" r="1.1" fill="#ffb25b"/><circle class="dest" cx="94" cy="41" r="1.1" fill="#ffb25b"/>
-    <polygon class="plane" points="3,0 -2.6,-2 -1,0 -2.6,2" fill="#f6efe2"/>
+    <g class="globe"><circle cx="50" cy="30" r="22" fill="rgba(3,44,66,.38)" stroke="rgba(255,255,255,.65)" stroke-width=".3"/>${ls}${ms}</g>
+    <path d="${route}" fill="none" stroke="rgba(254,215,0,.4)" stroke-width=".35" stroke-dasharray=".9 1.3"/>
+    <path class="route" d="${route}" fill="none" stroke="#fed700" stroke-width=".55" stroke-linecap="round"/>
+    <circle cx="6" cy="47" r="1.1" fill="#fed700"/><circle class="dest" cx="94" cy="41" r="1.1" fill="#fed700"/>
+    <polygon class="plane" points="3,0 -2.6,-2 -1,0 -2.6,2" fill="#ffffff"/>
   `, 'layer', st, { viewBox: '0 0 100 56', preserveAspectRatio: 'xMidYMid meet' });
   const mers = [...v.querySelectorAll('.mer')], route$ = v.querySelector('.route'), plane = v.querySelector('.plane'), dest = v.querySelector('.dest');
   const len = route$.getTotalLength();
   route$.style.strokeDasharray = len; route$.style.strokeDashoffset = len;
-  const stamp = h('div', 't5-stamp', st, `<svg viewBox="0 0 100 100" width="100%" aria-hidden="true">
-    <defs><path id="t5c" d="M50 50 m-35 0 a35 35 0 1 1 70 0 a35 35 0 1 1 -70 0"/></defs>
-    <circle cx="50" cy="50" r="46" fill="none" stroke="#ffb25b" stroke-width="2.2"/><circle cx="50" cy="50" r="27" fill="none" stroke="#ffb25b" stroke-width="1.2"/>
-    <text font-family="JetBrains Mono Variable, monospace" font-size="7.6" font-weight="600" fill="#ffb25b" letter-spacing="1"><textPath href="#t5c" textLength="214" lengthAdjust="spacing">TRAVEL WITHOUT BORDERS · LIVE AUG 2026 ·</textPath></text>
-    <text x="50" y="56" text-anchor="middle" font-family="JetBrains Mono Variable, monospace" font-size="15" font-weight="700" fill="#ffb25b">LIVE</text></svg>`);
+
+  // the very same postmark as the page's, lifted onto the stage
+  const real = next.querySelector('.postmark');
+  const stamp = real.cloneNode(true);
+  stamp.classList.add('t5-stamp');
+  stamp.innerHTML = stamp.innerHTML.replace(/pm-c/g, 'pm-c2');
+  stamp.style.color = '#fed700';
+  st.appendChild(stamp);
+  const M = { x: 0, y: 0, w: 1, dx: 0, dy: 0, sA: 1.2 };
+  const S = { a: 0, g: 0 };
+  const pose = () => {
+    const sc = lerp(lerp(M.sA * 1.7, M.sA, S.a), 1, S.g);
+    gsap_set(stamp, { x: lerp(M.dx, 0, S.g), y: lerp(M.dy, 0, S.g), scale: sc, rotation: lerp(lerp(-28, -10, S.a), -10, S.g), opacity: S.a });
+  };
+  const measure = () => {
+    const b = offsetBox(real, next), W = st.clientWidth, H = st.clientHeight;
+    M.w = b.w; stamp.style.left = b.x + 'px'; stamp.style.top = b.y + 'px'; stamp.style.width = b.w + 'px';
+    const mobile = W < 720;
+    M.dx = (mobile ? 0.7 : 0.8) * W - (b.x + b.w / 2); M.dy = 0.26 * H - (b.y + b.w / 2);
+    M.sA = Math.min(1.5, Math.max(1, (mobile ? 0.34 : 0.19) * W / b.w));
+    pose();
+  };
+  ctx.refresh.push(measure);
   const state = { th: 0, q: 0 };
   const poseGlobe = () => mers.forEach((m, k) => m.setAttribute('rx', (22 * Math.abs(Math.cos(state.th + (k * Math.PI) / merid))).toFixed(2)));
   const posePlane = () => {
     const a = route$.getPointAtLength(len * state.q), b = route$.getPointAtLength(Math.min(len, len * state.q + 1));
     plane.setAttribute('transform', `translate(${a.x} ${a.y}) rotate(${(Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI})`);
   };
-  tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.6 }, 0.05)
+  tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.55 }, 0.05)
     .to(state, { th: Math.PI * 1.6, ease: 'none', duration: 1, onUpdate: poseGlobe }, 0)
-    .to(state, { q: 1, ease: 'power1.inOut', duration: 0.68, onUpdate: posePlane }, 0.12)
-    .fromTo(route$, { strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.68 }, 0.12)
-    .fromTo(dest, { scale: 1, svgOrigin: '94 41' }, { scale: 3, svgOrigin: '94 41', yoyo: true, repeat: 1, duration: 0.04 }, 0.8)
-    .fromTo(stamp, { opacity: 0, scale: 1.6, rotation: -26 }, { opacity: 0.92, scale: 1, rotation: -10, ease: 'power3.in', duration: 0.09 }, 0.84)
-    .to(plane, { opacity: 0, duration: 0.05 }, 0.82);
-  poseGlobe(); posePlane();
+    .to(state, { q: 1, ease: 'power1.inOut', duration: 0.6, onUpdate: posePlane }, 0.1)
+    .fromTo(route$, { strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.6 }, 0.1)
+    .fromTo(dest, { scale: 1, svgOrigin: '94 41' }, { scale: 3, svgOrigin: '94 41', yoyo: true, repeat: 1, duration: 0.04 }, 0.7)
+    .to(plane, { opacity: 0, duration: 0.05 }, 0.7)
+    .to(S, { a: 1, ease: 'power3.in', duration: 0.09, onUpdate: pose }, 0.72)
+    .to(S, { g: 1, ease: 'power2.inOut', duration: 0.18, onUpdate: pose }, 0.8)
+    .to(v, { opacity: 0, ease: 'power1.inOut', duration: 0.2 }, 0.78)
+    .to(clouds, { opacity: 0, ease: 'power1.inOut', duration: 0.2 }, 0.78);
+  poseGlobe(); posePlane(); measure();
   return { ownsBg: true };
 }
 
-/* ---------------------------------------------------------------- 6 · Travel → Road
-   Landing: dusk sky gives way to tarmac in perspective, learner plates flash past, headlights come on. */
+/* ---------------------------------------------------------------- 6 · Travel → Drive Pro
+   A traffic light runs red, amber, green; the green lamp swells until it fills the screen. */
 function t6({ st, tl, to }) {
-  const sun = h('div', 't6-sun', st);
-  const ground = h('div', 't6-ground', st);
-  const road = h('div', 't6-road', ground);
-  const dash = h('div', 't6-dash', road);
-  const beam = h('div', 't6-beam', st);
-  tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, duration: 0.55 }, 0.05)
-    .fromTo(sun, { y: '-6vh', opacity: 0 }, { y: '4vh', opacity: 0.95, duration: 0.3, ease: 'power1.out' }, 0)
-    .to(sun, { y: '16vh', opacity: 0, duration: 0.5, ease: 'power1.in' }, 0.4)
-    .fromTo(ground, { yPercent: 100 }, { yPercent: 0, ease: 'power3.out', duration: 0.3 }, 0.02)
-    .fromTo(dash, { backgroundPositionY: '0vh' }, { backgroundPositionY: '420vh', ease: 'power1.in', duration: 0.96 }, 0.04)
-    .fromTo(beam, { opacity: 0 }, { opacity: 0.5, duration: 0.2 }, 0.5);
-  [[0.1, -1, 58], [0.3, 1, 64], [0.5, -1, 70], [0.64, 1, 56]].forEach(([at, side, spread]) => {
-    const s = h('div', 't6-sign', st, 'L');
-    tl.fromTo(s, { x: side * 1.5 + 'vw', y: '0vh', scale: 0.1, opacity: 0 }, { x: side * spread + 'vw', y: '46vh', scale: 1.9, opacity: 1, ease: 'power2.in', duration: 0.34 }, at)
-      .to(s, { opacity: 0, duration: 0.02 }, at + 0.32);
-  });
-  return { ownsBg: true, cap: (p) => Math.round(p * 70) + ' mph' };
+  const light = h('div', 't6-light', st, '<div class="t6-lamp r"><i></i></div><div class="t6-lamp a"><i></i></div><div class="t6-lamp g"><i></i></div>');
+  const [r, a, g] = [...light.querySelectorAll('i')];
+  const fill = h('div', 't6-fill', st);
+  const D = 10.53; // lamp diameter, vmin
+  fill.style.cssText += `;top:calc(50% + 12.5vmin);width:${D}vmin;height:${D}vmin;margin:-${D / 2}vmin 0 0 -${D / 2}vmin`;
+  const Z = { z: 0 };
+  const zoom = () => {
+    const W = st.clientWidth, H = st.clientHeight, d = (D / 100) * Math.min(W, H);
+    const target = (Math.hypot(W, H) * 2.2) / d;
+    const k = Math.exp(Math.log(target) * Z.z);
+    fill.style.transform = `translateX(-0%) scale(${k.toFixed(3)})`;
+    const m = smooth(0.7, 1, Z.z);
+    fill.style.backgroundColor = `rgb(${Math.round(lerp(34, 17, m))},${Math.round(lerp(197, 17, m))},${Math.round(lerp(94, 17, m))})`;
+  };
+  tl.fromTo(light, { y: '12vh', opacity: 0 }, { y: '0vh', opacity: 1, ease: 'power3.out', duration: 0.14 }, 0.02)
+    .fromTo(r, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.16).to(r, { opacity: 0, duration: 0.03 }, 0.34)
+    .fromTo(a, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.34).to(a, { opacity: 0, duration: 0.03 }, 0.5)
+    .fromTo(g, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.5)
+    .set(fill, { opacity: 1 }, 0.56)
+    .to(Z, { z: 1, ease: 'power1.in', duration: 0.4, onUpdate: zoom }, 0.56)
+    .to(light, { opacity: 0, duration: 0.05 }, 0.9);
+  zoom();
+  return { ownsBg: true, cap: (p) => (p < 0.34 ? 'Stop' : p < 0.5 ? 'Steady' : 'Go') };
 }
 
-/* ---------------------------------------------------------------- 7 · Road → Dashboard
-   A chart draws itself on the dark (bars, trend line, ring) while a pale page sweeps across behind a scan line. */
+/* ---------------------------------------------------------------- 7 · Drive Pro → Dashboard
+   A chart draws itself on the dark while a pale page sweeps across; then the bars lift away, the grid and ring slide off
+   to the right, the trend line follows its own slope up and to the right and the numbers fade, as the real section rises in. */
 function chartMarkup(ink) {
   const bars = [16, 23, 19, 30, 26, 38, 33, 45, 40, 50, 44, 54];
   const cols = ['#d6201a', '#1b3fb8', '#f2b705'];
@@ -282,12 +389,14 @@ function chartMarkup(ink) {
   for (let i = 0; i < 6; i++) g += `<line class="gl" x1="12" x2="120" y1="${14 + i * 12}" y2="${14 + i * 12}" stroke="${ink}" stroke-opacity=".28" stroke-width=".3"/>`;
   bars.forEach((hh, i) => { g += `<rect class="br" x="${14 + i * 8.6}" y="${74 - hh}" width="5.6" height="${hh}" fill="${cols[i % 3]}"/>`; });
   const pts = bars.map((hh, i) => `${16.8 + i * 8.6},${74 - hh - 8}`).join(' ');
+  g += '<g class="trend">';
   g += `<polyline class="ln" points="${pts}" pathLength="1" fill="none" stroke="${ink}" stroke-width=".9" stroke-linejoin="round" stroke-linecap="round"/>`;
   bars.forEach((hh, i) => { g += `<circle class="mk" cx="${16.8 + i * 8.6}" cy="${74 - hh - 8}" r="1.3" fill="#f2b705" stroke="${ink}" stroke-width=".4"/>`; });
-  ['00', '05', '10', '15', '20'].forEach((y, i) => { g += `<text x="${16.8 + i * 21.5}" y="81" font-family="JetBrains Mono Variable, monospace" font-size="2.6" fill="${ink}" fill-opacity=".7" text-anchor="middle">${y}</text>`; });
+  g += '</g>';
+  ['00', '05', '10', '15', '20'].forEach((y, i) => { g += `<text class="tx" x="${16.8 + i * 21.5}" y="81" font-family="JetBrains Mono Variable, monospace" font-size="2.6" fill="${ink}" fill-opacity=".7" text-anchor="middle">${y}</text>`; });
   const seg = [[0, 40, '#d6201a'], [40, 35, '#1b3fb8'], [75, 25, '#f2b705']];
-  g += '<g transform="rotate(-90 140 38)">' + seg.map(([a, l, c]) => `<circle class="rg" data-a="${a}" data-l="${l}" cx="140" cy="38" r="12" fill="none" stroke="${c}" stroke-width="6" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="${-a}"/>`).join('') + '</g>';
-  g += `<text class="ct" x="140" y="39.4" font-family="JetBrains Mono Variable, monospace" font-size="4" font-weight="600" fill="${ink}" text-anchor="middle">100</text>`;
+  g += '<g class="dnw"><g transform="rotate(-90 140 38)">' + seg.map(([a, l, c]) => `<circle class="rg" data-a="${a}" data-l="${l}" cx="140" cy="38" r="12" fill="none" stroke="${c}" stroke-width="6" pathLength="100" stroke-dasharray="0 100" stroke-dashoffset="${-a}"/>`).join('') + '</g></g>';
+  g += `<text class="ct tx" x="140" y="39.4" font-family="JetBrains Mono Variable, monospace" font-size="4" font-weight="600" fill="${ink}" text-anchor="middle">100</text>`;
   return g;
 }
 function t7({ st, tl, gsap }) {
@@ -297,24 +406,32 @@ function t7({ st, tl, gsap }) {
   const lightSvg = mk('#111111', light);
   const scan = h('div', 't7-scan', st);
   const both = (sel) => [...dark.querySelectorAll(sel), ...lightSvg.querySelectorAll(sel)];
+  const lt = (sel) => [...lightSvg.querySelectorAll(sel)];
   gsap.set(both('.gl'), { scaleX: 0, transformOrigin: '0% 50%' });
   gsap.set(both('.br'), { scaleY: 0.02, transformOrigin: '50% 100%' });
   gsap.set(both('.mk'), { scale: 0.01, transformOrigin: '50% 50%' });
   gsap.set(both('.ct'), { opacity: 0 });
-  tl.to(both('.ct'), { opacity: 1, duration: 0.08 }, 0.52)
-    .fromTo(both('.gl'), { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, ease: 'power2.out', duration: 0.14, stagger: 0.02 }, 0.02)
-    .fromTo(both('.br'), { scaleY: 0.02, transformOrigin: '50% 100%' }, { scaleY: 1, ease: 'power3.out', duration: 0.2, stagger: 0.02 }, 0.1)
-    .fromTo(both('.ln'), { strokeDasharray: 1, strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.26 }, 0.4)
-    .fromTo(both('.mk'), { scale: 0.01, transformOrigin: '50% 50%' }, { scale: 1, ease: 'back.out(2)', duration: 0.08, stagger: 0.02 }, 0.42)
-    .fromTo(light, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'power2.inOut', duration: 0.3 }, 0.52)
-    .fromTo(scan, { left: '0%' }, { left: '100%', ease: 'power2.inOut', duration: 0.3 }, 0.52)
-    .to(scan, { opacity: 0, duration: 0.02 }, 0.82);
-  both('.rg').forEach((c) => { const o = { v: 0 }, L = +c.dataset.l; tl.to(o, { v: L, ease: 'power2.out', duration: 0.26, onUpdate: () => c.setAttribute('stroke-dasharray', `${o.v} 100`) }, 0.3); });
+  gsap.set(scan, { opacity: 0 });
+  tl.set(scan, { opacity: 1 }, 0.44).to(both('.ct'), { opacity: 1, duration: 0.08 }, 0.44)
+    .fromTo(both('.gl'), { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, ease: 'power2.out', duration: 0.12, stagger: 0.018 }, 0.02)
+    .fromTo(both('.br'), { scaleY: 0.02, transformOrigin: '50% 100%' }, { scaleY: 1, ease: 'power3.out', duration: 0.18, stagger: 0.018 }, 0.08)
+    .fromTo(both('.ln'), { strokeDasharray: 1, strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.22 }, 0.32)
+    .fromTo(both('.mk'), { scale: 0.01, transformOrigin: '50% 50%' }, { scale: 1, ease: 'back.out(2)', duration: 0.08, stagger: 0.016 }, 0.34)
+    .fromTo(light, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'power2.inOut', duration: 0.26 }, 0.44)
+    .fromTo(scan, { left: '0%' }, { left: '100%', ease: 'power2.inOut', duration: 0.26 }, 0.44)
+    .to(scan, { opacity: 0, duration: 0.02 }, 0.7);
+  both('.rg').forEach((c) => { const o = { v: 0 }, L = +c.dataset.l; tl.to(o, { v: L, ease: 'power2.out', duration: 0.24 , onUpdate: () => c.setAttribute('stroke-dasharray', `${o.v} 100`) }, 0.26); });
+  // exit, in the direction each part points, while the real section rises over the stage
+  tl.to(lt('.tx'), { opacity: 0, ease: 'power1.inOut', duration: 0.12 }, 0.7)
+    .to(lt('.br'), { y: -120, ease: 'power2.in', duration: 0.22, stagger: 0.008 }, 0.72)
+    .to(lt('.gl'), { x: 230, ease: 'power2.in', duration: 0.24, stagger: 0.01 }, 0.74)
+    .to(lt('.dnw'), { x: 230, ease: 'power2.in', duration: 0.24 }, 0.75)
+    .to(lt('.trend'), { x: 120, y: -80, ease: 'power2.in', duration: 0.26 }, 0.73);
 }
 
 /* ---------------------------------------------------------------- 8 · Dashboard → Glass
-   The flat page dissolves into soft colour; panes of frosted glass drift across with a refracting lens. */
-function t8({ st, tl }) {
+   The flat page dissolves into soft colour; panes of frosted glass drift across, then two of them grow into the real cards. */
+function t8({ st, tl, next, ctx }) {
   const orbs = h('div', 't8-orbs', st);
   const blob = (css, from, to) => { const b = h('div', 't8-blob', orbs); b.style.cssText += ';' + css; tl.fromTo(b, { x: from[0] + 'vw', y: from[1] + 'vh' }, { x: to[0] + 'vw', y: to[1] + 'vh', ease: 'none', duration: 1 }, 0); return b; };
   const bl = [
@@ -322,70 +439,107 @@ function t8({ st, tl }) {
     blob('right:-14%;top:20%;width:56vmax;height:56vmax;background:radial-gradient(closest-side,#8ef0d0,rgba(142,240,208,0))', [10, 14], [-22, -8]),
     blob('left:20%;bottom:-24%;width:60vmax;height:60vmax;background:radial-gradient(closest-side,#ff5fa8,rgba(255,95,168,0))', [-12, 10], [16, -14]),
   ];
-  const panes = [
-    { css: 'left:8%;top:14%;width:38vw;height:54vh;', a: [0, 80, -9], b: [-6, -86, -2] },
-    { css: 'left:46%;top:34%;width:30vw;height:42vh;', a: [10, 110, 8], b: [4, -96, 1] },
-    { css: 'left:68%;top:8%;width:24vw;height:32vh;', a: [14, 60, -5], b: [10, -110, 3] },
-  ].map((o) => { const e = h('div', 't8-pane', st); e.style.cssText += ';' + o.css; tl.fromTo(e, { x: o.a[0] + 'vw', y: o.a[1] + 'vh', rotation: o.a[2] }, { x: o.b[0] + 'vw', y: o.b[1] + 'vh', rotation: o.b[2], ease: 'power1.inOut', duration: 0.98 }, 0.01); return e; });
+  const defs = [
+    { f: [0.08, 0.14, 0.38, 0.54], a: [0, 80, -9], b: [-6, -30, -2] },
+    { f: [0.46, 0.34, 0.3, 0.42], a: [10, 110, 8], b: [4, -20, 1] },
+    { f: [0.68, 0.08, 0.24, 0.32], a: [14, 60, -5], b: [10, -110, 3] },
+  ];
+  const panes = defs.map((o) => h('div', 't8-pane', st));
+  const sheet = h('i', '', panes[1]); sheet.style.cssText = 'position:absolute;inset:0;border-radius:inherit;background:#f7fbf8;opacity:0';
+  const cards = [...next.querySelectorAll('.mini')];
+  const geo = defs.map(() => ({ s: null, t: null }));
+  const measure = () => {
+    const W = st.clientWidth, H = st.clientHeight;
+    defs.forEach((o, i) => { geo[i].s = [o.f[0] * W, o.f[1] * H, o.f[2] * W, o.f[3] * H]; });
+    cards.slice(0, 2).forEach((c, i) => { const b = offsetBox(c, next); geo[i].t = [b.x, b.y, b.w, b.h]; });
+    place();
+  };
+  const M = { m: 0 };
+  const place = () => {
+    panes.forEach((e, i) => {
+      const s = geo[i].s; if (!s) return;
+      const t = geo[i].t, m = t ? M.m : 0, q = t ? t : s;
+      e.style.left = lerp(s[0], q[0], m) + 'px'; e.style.top = lerp(s[1], q[1], m) + 'px';
+      e.style.width = lerp(s[2], q[2], m) + 'px'; e.style.height = lerp(s[3], q[3], m) + 'px';
+      e.style.borderRadius = lerp(28, 32, m) + 'px';
+    });
+  };
+  panes.forEach((e, i) => {
+    const o = defs[i];
+    tl.fromTo(e, { x: o.a[0] + 'vw', y: o.a[1] + 'vh', rotation: o.a[2] }, { x: o.b[0] + 'vw', y: o.b[1] + 'vh', rotation: o.b[2], ease: 'power1.inOut', duration: 0.64 }, 0.01);
+  });
   const lens = h('div', 't8-lens', st);
-  tl.fromTo(orbs, { opacity: 0 }, { opacity: 1, ease: 'power1.inOut', duration: 0.5 }, 0.06)
-    .fromTo(lens, { x: '-30vw', y: '-10vh' }, { x: '130vw', y: '12vh', ease: 'power1.inOut', duration: 0.85 }, 0.08)
-    .to(bl, { opacity: 0.0, duration: 0.14 }, 0.86);
+  tl.to(panes.slice(0, 2), { x: 0, y: 0, rotation: 0, ease: 'power2.inOut', duration: 0.26 }, 0.66)
+    .to(M, { m: 1, ease: 'power2.inOut', duration: 0.26, onUpdate: place }, 0.66)
+    .to(sheet, { opacity: 1, duration: 0.14 }, 0.78)
+    .to(panes[2], { opacity: 0, duration: 0.2 }, 0.7)
+    .fromTo(orbs, { opacity: 0 }, { opacity: 1, ease: 'power1.inOut', duration: 0.5 }, 0.06)
+    .fromTo(lens, { x: '-30vw', y: '-10vh' }, { x: '130vw', y: '12vh', ease: 'power1.inOut', duration: 0.7 }, 0.08)
+    .to(lens, { opacity: 0, duration: 0.08 }, 0.7)
+    .to(bl, { opacity: 0, ease: 'power1.inOut', duration: 0.2 }, 0.78);
+  ctx.refresh.push(measure);
+  measure();
 }
 
 /* ---------------------------------------------------------------- 9 · Side projects → Experience
-   A playhead scrubs along a career timeline (real roles and dates), the stage turning cobalt as it goes. */
-function t9({ st, tl }) {
-  const PY = 60, Y0 = 2021, END = 5.6; // vw per year, first year, years travelled
+   A playhead scrubs a career timeline (supervisor role since 2025, regular site worker before that); the stage turns cobalt and the real section rises over it. */
+function t9({ st, tl, to }) {
+  const PY = 60, Y0 = 2021, END = 5.8; // vw per year, first year, years travelled
   const rail = h('div', 't9-rail', st);
   h('div', 't9-line', rail);
-  for (let q = -4; q <= 29; q++) { const t = h('i', 't9-tick' + (q % 4 === 0 ? ' maj' : ''), rail); t.style.left = (q / 4) * PY + 'vw'; }
-  for (let y = 0; y <= 6; y++) { const e = h('b', 't9-year', rail, String(Y0 + y)); e.style.left = y * PY + 'vw'; }
-  [[2021, 'Site Supervisor', 'Residential renovation · 2021 – Present', 'up'], [2026.32, 'BSc Computer Science', 'Newcastle University · Graduated 2026', 'down'], [2026.62, 'Freelance Web Developer', '2026 – Present', 'up']]
-    .forEach(([y, t, sub, pos]) => { const n = h('div', 't9-node ' + pos, rail, `<i></i><div><b>${t}</b><span>${sub}</span></div>`); n.style.left = (y - Y0) * PY + 'vw'; });
-  h('div', 't9-head', st);
+  for (let q = -4; q <= 31; q++) { const t = h('i', 't9-tick' + (q % 4 === 0 ? ' maj' : ''), rail); t.style.left = (q / 4) * PY + 'vw'; }
+  for (let y = 0; y <= 7; y++) { const e = h('b', 't9-year', rail, String(Y0 + y)); e.style.left = y * PY + 'vw'; }
+  [
+    [2021, 'Site worker', 'Residential renovation · regular worker, 2021 – 2025', 'up'],
+    [2025, 'Site Supervisor', 'Supervisor role given in 2025', 'down'],
+    [2026.32, 'BSc Computer Science', 'Newcastle University · Graduated 2026', 'up'],
+    [2026.62, 'Freelance Web Developer', 'Travel Without Borders · M.G. Drive Pro', 'down'],
+  ].forEach(([y, t, sub, pos]) => { const n = h('div', 't9-node ' + pos, rail, `<i></i><div><b>${t}</b><span>${sub}</span></div>`); n.style.left = (y - Y0) * PY + 'vw'; });
+  const head = h('div', 't9-head', st);
   const big = h('div', 't9-big', st, String(Y0));
   const state = { u: 0 };
   const year = () => Math.min(2026, Math.floor(Y0 + state.u * END));
-  tl.to(state, { u: 1, ease: 'power1.inOut', duration: 0.92, onUpdate: () => { rail.style.transform = `translate3d(${(-END * PY * state.u).toFixed(2)}vw,0,0)`; big.textContent = String(year()); } }, 0.04);
-  return { cap: () => String(year()), bg: 'tween' };
+  tl.to(state, { u: 1, ease: 'power1.inOut', duration: 0.84, onUpdate: () => { rail.style.transform = `translate3d(${(-END * PY * state.u).toFixed(2)}vw,0,0)`; big.textContent = String(year()); } }, 0.04)
+    .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.4 }, 0.06)
+    .to([rail, big, head], { opacity: 0, ease: 'power1.inOut', duration: 0.2 }, 0.8);
+  return { cap: () => String(year()), ownsBg: true };
 }
 
 /* ---------------------------------------------------------------- 10 · Skills → Beyond code
-   A barbell is loaded plate by plate (the kg total climbs), then the room closes in on the lift. */
-function t10({ st, tl, ctx }) {
+   The bar rolls up from deep in the page with one plate a side already on, then is loaded plate by plate (the kg total climbs)
+   while it stays perfectly still; the room closes in on the lift. */
+function t10({ st, tl }) {
   const red = h('div', 't10-red', st);
-  const rig = h('div', 't10-rig', st);
-  h('div', 't10-bar', rig); h('div', 't10-grip', rig);
+  const roll = h('div', 't10-roll', st);
+  const rig = h('div', 't10-rig', roll);
+  h('div', 't10-floor', rig); h('div', 't10-bar', rig); h('div', 't10-grip', rig);
   const plates = [ // kg, colour, height (vmin), thickness (vmin)
     [25, '#d6201a', 46, 2.6], [25, '#d6201a', 46, 2.6], [20, '#1b4fd6', 46, 2.4], [15, '#f2c200', 40, 2], [10, '#1f9d4a', 33, 1.6], [5, '#f1f1f1', 26, 1.2], [2.5, '#111', 22, 1],
   ];
-  const land = plates.map((_, k) => 0.12 + k * 0.07);
+  const land = plates.map((_, k) => (k === 0 ? 0 : 0.36 + (k - 1) * 0.07));
   let off = 0;
   plates.forEach(([kg, col, ph, th], k) => {
-    [['left', 0], ['right', 0.018]].forEach(([side, delay]) => {
+    [['left', -1], ['right', 1]].forEach(([side, dir]) => {
       const e = h('div', 't10-plate', rig);
-      e.style.cssText += `;${side}:calc(${side === 'left' ? 28 : 28}vw - ${off + th}vmin);top:calc(50% - ${ph / 2}vmin);width:${th}vmin;height:${ph}vmin;background:${col}`;
-      tl.fromTo(e, { y: '-120vh' }, { y: '0vh', ease: 'power2.in', duration: 0.1 }, land[k] + delay - 0.1);
+      e.style.cssText += `;${side}:calc(28vw - ${off + th}vmin);top:calc(50% - ${ph / 2}vmin);width:${th}vmin;height:${ph}vmin;background:${col}`;
+      if (k > 0) tl.fromTo(e, { x: dir * 62 + 'vw' }, { x: '0vw', ease: 'power3.out', duration: 0.12 }, land[k] - 0.1 + (dir > 0 ? 0.015 : 0));
     });
     off += th + 0.25;
   });
-  const bar = rig.querySelector('.t10-bar');
-  land.forEach((t) => tl.to(bar, { y: '0.7vmin', ease: 'power2.out', duration: 0.014 }, t + 0.02).to(bar, { y: '0vmin', ease: 'power2.in', duration: 0.03 }, t + 0.034));
-  tl.fromTo(red, { scaleY: 0.01 }, { scaleY: 1, ease: 'power3.inOut', duration: 0.3 }, 0.64)
-    .fromTo(rig, { scale: 1 }, { scale: 1.16, ease: 'power1.in', duration: 0.62 }, 0.38)
-    .to(rig, { opacity: 0, duration: 0.1 }, 0.9);
+  tl.fromTo(roll, { scale: 0.16, y: '-13vh', opacity: 0 }, { scale: 1, y: '0vh', opacity: 1, ease: 'power2.out', duration: 0.3 }, 0)
+    .fromTo(red, { scaleY: 0.01 }, { scaleY: 1, ease: 'power3.inOut', duration: 0.24 }, 0.74)
+    .to(roll, { opacity: 0, duration: 0.1 }, 0.9);
   return {
     cap: (p) => {
-      let kg = 20 + 5; // bar + collars
-      plates.forEach(([w], k) => { if (p >= land[k] + 0.01) kg += w * 2; });
+      let kg = 25; // bar + collars
+      plates.forEach(([w], k) => { if (k === 0 || p >= land[k]) kg += w * 2; });
       return kg + ' kg';
     },
   };
 }
 
 /* ---------------------------------------------------------------- 11 · Beyond code → Contact
-   Heat: embers climb and a glowing orange front rises, its edge rippling, until the whole screen is lit. */
+   Heat: embers climb slowly and a glowing orange front rises, its edge rippling, until the whole screen is lit. */
 function t11({ st, tl, ctx }) {
   const rng = rngFrom(111);
   const glow = h('div', 't11-glow', st);
@@ -395,46 +549,47 @@ function t11({ st, tl, ctx }) {
   const N = 150;
   const em = Array.from({ length: N }, () => ({ x: rng(), v: 0.5 + rng() * 1.1, d: rng() * 0.22, ph: rng() * 6.28, am: 0.01 + rng() * 0.035, r: 0.8 + rng() * 2.6 }));
   const edge = (p) => {
-    const e = eio(clamp((p - 0.22) / 0.68));
+    const e = eio(clamp((p - 0.12) / 0.8));
     const base = lerp(1070, -60, e), amp = 22 * (1 - e * 0.5);
     let d = `M0 ${base}`;
-    for (let x = 0; x <= 1000; x += 20) d += `L${x} ${(base + Math.sin(x * 0.012 + p * 16) * amp + Math.sin(x * 0.031 - p * 11) * amp * 0.5).toFixed(1)}`;
+    for (let x = 0; x <= 1000; x += 20) d += `L${x} ${(base + Math.sin(x * 0.012 + p * 12) * amp + Math.sin(x * 0.031 - p * 8) * amp * 0.5).toFixed(1)}`;
     wp.setAttribute('d', d + 'L1000 1100L0 1100Z');
   };
   const draw = (p) => {
     const { g, size } = L; const W = size.w, H = size.h;
     g.clearRect(0, 0, W, H);
     g.globalCompositeOperation = 'lighter';
-    const vis = smooth(0.0, 0.12, p) * (1 - smooth(0.82, 1, p));
+    const vis = smooth(0.0, 0.2, p) * (1 - smooth(0.84, 1, p));
     if (vis > 0) em.forEach((q) => {
-      const y = H * 1.05 - (p * (0.8 + q.v) + q.d) * H * 1.15;
+      const y = H * 1.05 - (p * (0.8 + q.v) * 0.9 + q.d * 0.8) * H * 1.15;
       if (y < -10 || y > H + 10) return;
       const t = clamp(1 - y / H);
       const a = vis * (0.9 - t * 0.5);
       g.fillStyle = `rgba(255,${Math.round(lerp(236, 110, t))},${Math.round(lerp(150, 40, t))},${a})`;
-      g.beginPath(); g.arc(q.x * W + Math.sin(p * 9 + q.ph) * q.am * W, y, q.r * (1.1 - t * 0.5), 0, 6.283); g.fill();
+      g.beginPath(); g.arc(q.x * W + Math.sin(p * 7 + q.ph) * q.am * W, y, q.r * (1.1 - t * 0.5), 0, 6.283); g.fill();
     });
     g.globalCompositeOperation = 'source-over';
   };
   ctx.redraw = () => { draw(tl.progress()); edge(tl.progress()); };
   ctx.update.push(draw, edge);
   edge(0); draw(0);
-  tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1.3, ease: 'power1.in', duration: 0.6 }, 0.04).to(glow, { opacity: 0, duration: 0.2 }, 0.8);
+  tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1.3, ease: 'sine.inOut', duration: 0.7 }, 0.04).to(glow, { opacity: 0, ease: 'sine.inOut', duration: 0.24 }, 0.76);
 }
 
 /* ---------------------------------------------------------------- wiring */
+// T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'] },
-  { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'] },
-  { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'] },
-  { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'] },
-  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#f6efe2'] },
-  { before: '#drivepro', fn: t6, label: 'On the road → M.G. Drive Pro', ink: ['#f6efe2', '#f4f4f0'] },
-  { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#f4f4f0', '#111'] },
-  { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'] },
-  { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'] },
-  { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'] },
-  { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'] },
+  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 150, land: 0.92, fade: 0.08 },
+  { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 170, land: 0.9, fade: 0.1 },
+  { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
+  { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 200, land: 0.9, fade: 0.1 },
+  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
+  { before: '#drivepro', fn: t6, label: 'Lights → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 210, land: 0.9, fade: 0.1 },
+  { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 260, over: true },
+  { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
+  { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 270, over: true },
+  { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08 },
+  { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'], T: 280, land: 0.88, fade: 0.12 },
 ];
 
 function bgOf(el) {
@@ -444,39 +599,47 @@ function bgOf(el) {
 }
 
 /* Reveal trigger for an element: if it sits in the first screen of a section that follows a transition,
-   its entrance is held until the transition has landed; otherwise it enters as it scrolls into view. */
+   its entrance is held until the stage starts giving way; otherwise it enters as it scrolls into view. */
 export function revealTrigger(el, start = 'top 88%') {
   const sec = el.closest('.scene');
   const seam = sec && sec.previousElementSibling;
-  if (seam && seam.classList.contains('seam')) {
+  if (seam && seam.classList.contains('seam') && !seam.dataset.over) {
     let y = 0, e = el;
     while (e && e !== sec) { y += e.offsetTop; e = e.offsetParent; }
     if (y < window.innerHeight * 0.9) {
-      return { trigger: seam, once: true, start: () => seam.getBoundingClientRect().bottom + window.scrollY - window.innerHeight - 0.06 * (seam.offsetHeight - window.innerHeight) };
+      const land = parseFloat(seam.dataset.land || '0.93');
+      return { trigger: seam, once: true, start: () => seam.getBoundingClientRect().top + window.scrollY + (land + 0.03) * (seam.offsetHeight - window.innerHeight) };
     }
   }
   return { trigger: el, start, once: true };
 }
 
 export function initTransitions(gsap, ScrollTrigger) {
+  gsap_set = (el, v) => gsap.set(el, v);
   const cleanups = [];
   const refreshFns = [];
-  DEFS.forEach((def) => {
+  const mobile = window.innerWidth <= 720;
+  DEFS.forEach((def, idx) => {
     const next = document.querySelector(def.before);
     if (!next) return;
     const prev = next.previousElementSibling;
     const from = bgOf(prev), to = bgOf(next);
     const seam = h('div', 'seam');
     seam.setAttribute('aria-hidden', 'true');
+    seam.style.setProperty('--T', (def.T || 150) * (mobile ? 0.8 : 1) + 'vh');
+    seam.style.zIndex = String(10 + idx * 2);
+    if (def.over) { seam.dataset.over = '1'; next.style.position = 'relative'; next.style.zIndex = String(11 + idx * 2); }
+    else seam.dataset.land = String(def.land || 0.93);
     const st = h('div', 'seam-stick', seam);
     st.style.backgroundColor = from;
     next.parentNode.insertBefore(seam, next);
+    if (getComputedStyle(next).position === 'static') next.style.position = 'relative';
 
     const capEl = h('div', 'seam-cap', st, `<span>${def.label}</span><span class="pct">00</span>`);
     capEl.style.color = def.ink[0];
     const pct = capEl.querySelector('.pct');
 
-    // master: scrubbed by scroll. core: the effect (compressed into the first 90%); the last 10% clears the stage onto the live page.
+    // master: scrubbed by scroll. core: the effect (compressed into the first 90%); the rest hands over to the live page.
     const master = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: 0.4, invalidateOnRefresh: true },
@@ -484,7 +647,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
     master.add(tl, 0);
     tl.timeScale(1 / 0.9);
-    const ctx = { st, tl, gsap, next, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
+    const ctx = { st, tl, gsap, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
     ctx.ctx = ctx;
     const res = def.fn(ctx) || {};
     if (!res.ownsBg && res.bg !== 'tween') tl.to(st, { backgroundColor: to, duration: 0.02, ease: 'none' }, 0.98);
@@ -492,7 +655,14 @@ export function initTransitions(gsap, ScrollTrigger) {
     tl.set({}, {}, 1);
 
     master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
-      .fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: 0.07 }, 0.93);
+      .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.07 }, 0);
+    if (!def.over) {
+      const land = def.land || 0.93, fade = def.fade || 0.07;
+      master.fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
+      // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
+      const m0 = Math.max(0.5, land - 0.06);
+      master.fromTo(next, { y: () => -(1 - m0) * (seam.offsetHeight - window.innerHeight) }, { y: 0, ease: 'none', duration: 1 - m0, immediateRender: false }, m0);
+    }
     master.set({}, {}, 1);
 
     const capFn = res.cap;
