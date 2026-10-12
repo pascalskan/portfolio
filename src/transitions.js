@@ -433,10 +433,11 @@ function t9({ st, tl, to }) {
     [2026.62, 'Freelance Web Developer', 'Travel Without Borders · M.G. Drive Pro', 'down'],
   ].forEach(([y, t, sub, pos]) => { const n = h('div', 't9-node ' + pos, rail, `<i></i><div><b>${t}</b><span>${sub}</span></div>`); n.style.left = (y - Y0) * PY + 'vw'; });
   const head = h('div', 't9-head', st);
-  const big = h('div', 't9-big', st, String(Y0));
+  const big = h('div', 't9-big', st, [...String(Y0)].map((d) => `<span>${d}</span>`).join(''));
+  const last = big.lastElementChild; // only the final digit ever changes, so the rest of the year never moves
   const state = { u: 0 };
   const year = () => Math.min(2026, Math.floor(Y0 + state.u * END));
-  tl.to(rail, { x: `${-END * PY}vw`, ease: 'power1.inOut', duration: 0.8, onUpdate: function () { state.u = this.progress(); big.textContent = String(year()); } }, 0.04)
+  tl.to(rail, { x: `${-END * PY}vw`, ease: 'power1.inOut', duration: 0.8, onUpdate: function () { state.u = this.progress(); last.textContent = String(year()).slice(-1); } }, 0.04)
     .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.5 }, 0.1)
     .to([head, big], { opacity: 0, ease: 'power1.inOut', duration: 0.1 }, 0.84)
     .to(rail, { opacity: 0, ease: 'power1.inOut', duration: 0.1 }, 0.86);
