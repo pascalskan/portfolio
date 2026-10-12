@@ -51,6 +51,100 @@ function offsetBox(el, root) {
   return { x, y, w: el.offsetWidth, h: el.offsetHeight };
 }
 
+/* ---------------------------------------------------------------- 1 · Hero → About
+   The hero's loose network of nodes is organised: the nodes drift onto a drafting grid, the diagonal links bend into square
+   routes, the page turns to paper, and a route is traced through three milestones: plan, evidence, delivery. */
+function t1({ st, tl, ctx }) {
+  const rng = rngFrom(17);
+  const L = canvasLayer(st, ctx);
+  const COLS = 13, ROWS = 7, N = 46;
+  const key = [[3, 2], [6, 4], [9, 2]]; // milestone cells
+  const cells = [];
+  for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) if (!key.some((k) => k[0] === c && k[1] === r)) cells.push([c, r]);
+  for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+  const pts = key.concat(cells.slice(0, N - 3)).map(([c, r], i) => ({ c, r, sx: 0.04 + rng() * 0.92, sy: 0.08 + rng() * 0.84, d: rng(), ph: rng() * 6.28, key: i < 3 }));
+  // each node links to its two nearest neighbours while scattered
+  const edges = []; const seen = new Set();
+  pts.forEach((a, i) => {
+    pts.map((b, j) => [j, (a.sx - b.sx) ** 2 + (a.sy - b.sy) ** 2]).filter((q) => q[0] !== i).sort((x, y) => x[1] - y[1]).slice(0, 2).forEach(([j]) => {
+      const k = i < j ? i + '-' + j : j + '-' + i;
+      if (!seen.has(k)) { seen.add(k); edges.push([i, j]); }
+    });
+  });
+  const labels = ['01 · PLAN', '02 · EVIDENCE', '03 · DELIVERY'];
+  const mix = (a, b, t) => `${Math.round(lerp(a[0], b[0], t))},${Math.round(lerp(a[1], b[1], t))},${Math.round(lerp(a[2], b[2], t))}`;
+  const EMBER = [255, 122, 69], LIGHT = [200, 205, 215], INK = [29, 26, 20];
+  const draw = (p) => {
+    const { g, size } = L; const W = size.w, H = size.h;
+    g.clearRect(0, 0, W, H);
+    const x0 = W * 0.08, x1 = W * 0.92, y0 = H * 0.17, y1 = H * 0.83;
+    const X = (c) => lerp(x0, x1, c / (COLS - 1)), Y = (r) => lerp(y0, y1, r / (ROWS - 1));
+    const k = smooth(0.28, 0.62, p); // dark page -> paper page
+    // drafting grid and dimension ticks
+    const ga = smooth(0.42, 0.78, p);
+    if (ga > 0) {
+      g.strokeStyle = `rgba(${mix(LIGHT, INK, k)},${0.16 * ga})`; g.lineWidth = 1;
+      for (let c = 0; c < COLS; c++) { g.beginPath(); g.moveTo(X(c), y0 - 18); g.lineTo(X(c), y0 - 18 + (y1 - y0 + 36) * ga); g.stroke(); }
+      for (let r = 0; r < ROWS; r++) { g.beginPath(); g.moveTo(x0 - 18, Y(r)); g.lineTo(x0 - 18 + (x1 - x0 + 36) * ga, Y(r)); g.stroke(); }
+      g.fillStyle = `rgba(${mix(LIGHT, INK, k)},${0.55 * ga})`; g.font = '500 10px "JetBrains Mono Variable", monospace';
+      for (let c = 0; c < COLS; c += 2) g.fillText(String(c * 10).padStart(3, '0'), X(c) - 8, y1 + 38);
+      for (let r = 0; r < ROWS; r += 2) g.fillText(String(r * 10).padStart(2, '0'), x0 - 40, Y(r) + 3);
+    }
+    // node positions: scattered (drifting) -> snapped to the grid
+    const pos = pts.map((q) => {
+      const t = eio(clamp((p - 0.1 - q.d * 0.2) / 0.4));
+      const dr = (1 - t) * 14;
+      const sx = W * q.sx + Math.sin(p * 6 + q.ph) * dr, sy = H * q.sy + Math.cos(p * 5 + q.ph) * dr;
+      return [lerp(sx, X(q.c), t), lerp(sy, Y(q.r), t), t];
+    });
+    // links: diagonal -> square (elbow routes)
+    const et = smooth(0.34, 0.7, p);
+    g.lineWidth = 1.2;
+    edges.forEach(([i, j]) => {
+      const a = pos[i], b = pos[j];
+      const ex = lerp((a[0] + b[0]) / 2, b[0], et), ey = lerp((a[1] + b[1]) / 2, a[1], et);
+      g.strokeStyle = `rgba(${mix(EMBER, INK, k)},${lerp(0.4, 0.34, k) * smooth(0.0, 0.14, p)})`;
+      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(ex, ey); g.lineTo(b[0], b[1]); g.stroke();
+    });
+    // nodes
+    pos.forEach((q, i) => {
+      g.fillStyle = `rgba(${mix(EMBER, INK, k)},${(0.55 + 0.4 * q[2]) * smooth(0.0, 0.14, p)})`;
+      g.beginPath(); g.arc(q[0], q[1], lerp(2.4, 3.6, q[2]), 0, 6.283); g.fill();
+    });
+    // traced route through the three milestones
+    const tr = smooth(0.6, 0.9, p);
+    const m = [0, 1, 2].map((i) => [X(pts[i].c), Y(pts[i].r)]);
+    const path = [m[0], [m[1][0], m[0][1]], m[1], [m[2][0], m[1][1]], m[2]];
+    const lens = []; let total = 0;
+    for (let i = 1; i < path.length; i++) { const l = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); lens.push(l); total += l; }
+    if (tr > 0) {
+      let rem = total * tr;
+      g.strokeStyle = 'rgba(166,58,21,.95)'; g.lineWidth = 3; g.lineJoin = 'round'; g.beginPath(); g.moveTo(path[0][0], path[0][1]);
+      for (let i = 1; i < path.length && rem > 0; i++) {
+        const f = Math.min(1, rem / lens[i - 1]);
+        g.lineTo(lerp(path[i - 1][0], path[i][0], f), lerp(path[i - 1][1], path[i][1], f));
+        rem -= lens[i - 1];
+      }
+      g.stroke(); g.lineWidth = 1;
+    }
+    m.forEach((q, i) => {
+      const a = smooth(0.62 + i * 0.09, 0.7 + i * 0.09, p);
+      if (a <= 0) return;
+      g.strokeStyle = `rgba(166,58,21,${a})`; g.fillStyle = `rgba(236,228,211,${a})`; g.lineWidth = 2.5;
+      g.beginPath(); g.arc(q[0], q[1], 5 + 9 * (1 - a) + 4, 0, 6.283); g.fill(); g.stroke(); g.lineWidth = 1;
+      g.fillStyle = `rgba(29,26,20,${a})`; g.font = '600 12px "JetBrains Mono Variable", monospace';
+      g.fillText(labels[i], q[0] + 16, q[1] - 16 - (1 - a) * 8);
+    });
+  };
+  ctx.redraw = () => draw(tl.progress());
+  ctx.update.push(draw);
+  draw(0);
+  tl.fromTo(st, { backgroundColor: ctx.to.from }, { backgroundColor: ctx.to.to, ease: 'none', duration: 0.3 }, 0.28);
+  // once the route is drawn, the plan sinks as the page rises over it
+  tl.to(L.c, { y: '22vh', opacity: 0, ease: 'power1.in', duration: 0.24 }, 0.76);
+  return { ownsBg: true };
+}
+
 /* ---------------------------------------------------------------- 2 · About → Work
    The bars are the real index rows: they slide in already carrying the project titles and land exactly where the page has them. */
 function t2({ st, tl, next, ctx, to }) {
@@ -502,6 +596,7 @@ function t11({ st, tl, ctx }) {
 /* ---------------------------------------------------------------- wiring */
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
+  { before: '#about', fn: t1, label: 'Organising → About', ink: ['#8b8d93', '#5a523f'], T: 330, over: true, riseFade: true, core: 0.7 },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 330, over: true, riseFade: true, core: 0.70 },
@@ -556,10 +651,9 @@ export function initTransitions(gsap, ScrollTrigger) {
     }
     else seam.dataset.land = String(def.land || 0.93);
     // backing: the previous section's colour behind the stage for the whole run-out below that section, so a half-faded stage never shows the page behind it
-    const back = def.over ? null : h('div', 'seam-back', seam);
-    if (back) back.style.cssText = `position:absolute;left:0;right:0;top:100vh;bottom:0;background:${from}`;
+    const back = h('div', 'seam-back', seam);
+    back.style.cssText = `position:absolute;left:0;right:0;top:100vh;bottom:0;background:${from}`;
     const st = h('div', 'seam-stick', seam);
-    if (prev) prev.style.boxShadow = `0 100vh 0 0 ${from}`; // keeps the previous colour under the stage while the page scrolls away
     st.style.backgroundColor = from;
     next.parentNode.insertBefore(seam, next);
     if (getComputedStyle(next).position === 'static') next.style.position = 'relative';
@@ -588,11 +682,12 @@ export function initTransitions(gsap, ScrollTrigger) {
 
     master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
       .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: lead[1] }, lead[0]);
+    master.fromTo(back, { opacity: 1 }, { opacity: 0, ease: 'none', duration: 0.004 }, Math.min(lead[0] + lead[1] + 0.01, def.over ? 1 : (def.land || 0.93) - 0.02));
     if (!def.over) {
       const land = def.land || 0.93, fade = Math.min(def.fade || 0.07, 0.97 - land);
       master.fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
       // the backing is only needed while the stage is still fading in; once it is opaque the backing goes (otherwise it would tint the stage as it fades out over the live section)
-      master.fromTo(back, { opacity: 1 }, { opacity: 0, ease: 'none', duration: 0.004 }, Math.min(lead[0] + lead[1] + 0.01, land - 0.02));
+      // (the backing is removed below for every seam)
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
       placeFn = (m) => {

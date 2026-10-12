@@ -192,16 +192,6 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     .from('.hero .stats > div', { y: 24, autoAlpha: 0, duration: 0.8, stagger: 0.08 }, 1.0)
     .from('.hero-canvas', { autoAlpha: 0, duration: 1.6, ease: 'power2.out' }, 0.2);
 
-  // Hero -> About: the hero stays pinned (its bottom edge locks to the viewport if it is taller than the screen) while About slides up over it,
-  // and the hero dims and settles back slightly as it is covered
-  const heroEl = document.querySelector('.hero');
-  const pinHero = () => { heroEl.style.top = Math.min(0, window.innerHeight - heroEl.offsetHeight) + 'px'; };
-  pinHero();
-  window.addEventListener('resize', pinHero);
-  ScrollTrigger.addEventListener('refreshInit', pinHero);
-  gsap.to('.hero-inner, .hero-stage', { opacity: 0.25, ease: 'none', scrollTrigger: { trigger: '#about', start: 'top 90%', end: 'top 10%', scrub: true } });
-  gsap.to('.hero-inner', { y: -30, scale: 0.97, transformOrigin: '50% 100%', ease: 'none', scrollTrigger: { trigger: '#about', start: 'top 90%', end: 'top 10%', scrub: true } });
-
   // Word-by-word heading reveals
   headings.forEach((h) => {
     if (h.closest('.hero') || h.hasAttribute('data-dots')) return;

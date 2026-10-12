@@ -31,8 +31,6 @@
 
 /* ---------- 01 About: paper / terracotta, editorial serif ---------- */
 .t-paper { --s-bg: #ece4d3; --s-ink: #1d1a14; --s-mut: #5a523f; --s-acc: #a63a15; --s-line: rgba(29,26,20,.22); }
-/* Hero -> About: the hero stays pinned while the About page slides up over it (see main.js for the dimming) */
-#about { z-index: 2; box-shadow: 0 -40px 90px rgba(0,0,0,.55); }
 .t-paper .display-m { font-family: var(--serif); font-weight: 400; font-size: clamp(3.2rem, 10vw, 10rem); letter-spacing: -.035em; line-height: .88; margin-bottom: clamp(36px, 6vw, 88px); }
 .about-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(32px, 7vw, 120px); align-items: start; }
 .t-paper .prose p { font-family: var(--serif); font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.4rem); line-height: 1.2; letter-spacing: -.01em; margin-bottom: .8em; max-width: none; }
