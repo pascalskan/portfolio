@@ -57,7 +57,7 @@ function t1({ st, tl, ctx }) {
   h('div', 't1-paper', st);
   const bloom = h('div', 't1-bloom', st);
   const bl = svg('<path class="dk" fill="#0a0b0d" fill-rule="evenodd"/><g class="sm" stroke="rgba(236,235,230,.22)" stroke-width="1.2"><line/><line/><line/><line/><line/><line/></g>', 'layer', st);
-  const dk = bl.querySelector('.dk'), lines = [...bl.querySelectorAll('line')];
+  const dk = bl.querySelector('.dk'), sm = bl.querySelector('.sm'), lines = [...bl.querySelectorAll('line')];
   const vf = svg(`<g fill="none" stroke="#1d1a14" stroke-width="1.6">
       <path d="M12 20V12H20M88 12H80M88 12V20M12 80V88H20M88 80V88H80" transform="translate(0 0)"/>
       <path class="cx" d="M47 50H53M50 47V53"/></g>
@@ -66,8 +66,8 @@ function t1({ st, tl, ctx }) {
   const af = h('div', 't1-af', st, 'Focus · locked');
   const draw = (p) => {
     const W = st.clientWidth, H = st.clientHeight, cx = W / 2, cy = H / 2;
-    const e = clamp((p - 0.2) / 0.6), rmax = Math.hypot(W, H) * 0.64;
-    const R = e <= 0 ? 0 : lerp(16, rmax, Math.pow(eio(e), 1.5));
+    const e = clamp((p - 0.16) / 0.64), rmax = Math.hypot(W, H) * 0.64;
+    const R = e <= 0 ? 0 : lerp(2, rmax, Math.pow(eio(e), 1.5));
     const th = lerp(-0.4, 0.8, eio(e));
     bl.setAttribute('viewBox', `0 0 ${W} ${H}`);
     let d = `M0 0H${W}V${H}H0Z`;
@@ -76,6 +76,7 @@ function t1({ st, tl, ctx }) {
     if (R > 0) d += 'M' + v.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('L') + 'Z';
     dk.setAttribute('d', d);
     const L = Math.hypot(W, H);
+    sm.setAttribute('opacity', smooth(0.17, 0.4, p).toFixed(3)); // the blade lines fade in as the aperture starts to open, they don't pop on
     lines.forEach((ln, i) => {
       const a = v[i], b = v[(i + 1) % 6];
       const dx = a[0] - b[0], dy = a[1] - b[1], n = Math.hypot(dx, dy) || 1;
