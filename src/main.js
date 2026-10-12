@@ -260,6 +260,25 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     });
   }
 
+  // Live embeds: inert until clicked (so the page can still be scrolled past), interactive while active
+  const setLive = (box, on) => {
+    box.classList.toggle('live', on);
+    const f = box.querySelector('iframe');
+    if (on && f) { try { f.focus(); } catch (_) { /* noop */ } }
+  };
+  const onEmbedClick = (e) => {
+    const veil = e.target.closest('.embed-veil');
+    if (veil) { setLive(veil.closest('.embed'), true); return; }
+    const done = e.target.closest('.embed-exit');
+    if (done) setLive(done.closest('.embed'), false);
+  };
+  const onEmbedLeave = (e) => { const box = e.target.closest && e.target.closest('.embed.live'); if (box && !box.contains(e.relatedTarget)) setLive(box, false); };
+  const onEmbedKey = (e) => { if (e.key === 'Escape') document.querySelectorAll('.embed.live').forEach((b) => setLive(b, false)); };
+  document.addEventListener('click', onEmbedClick);
+  document.addEventListener('mouseout', onEmbedLeave);
+  document.addEventListener('keydown', onEmbedKey);
+  cleanups.push(() => { document.removeEventListener('click', onEmbedClick); document.removeEventListener('mouseout', onEmbedLeave); document.removeEventListener('keydown', onEmbedKey); });
+
   // Case studies and the 404 rise over the page as hash routes
   cleanups.push(views.destroy);
 

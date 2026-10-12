@@ -132,7 +132,7 @@ export const CASES = {
         'Designed around progressive disclosure for a non-expert audience, with prototypes in Figma and a written design rationale.',
       ] },
     ],
-    shot: { src: 'shots/dashboard.webp', alt: 'Screenshot of the Global Economic Dashboard' },
+    embed: { src: 'dashboard/index.html', title: 'Interactive Global Economic Dashboard' },
     stack: ['Python', 'pandas', 'Altair / Vega-Lite', 'Figma'],
     links: [],
   },
