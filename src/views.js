@@ -14,8 +14,8 @@ function caseHTML(id) {
   const next = CASES[CASE_ORDER[(i + 1) % CASE_ORDER.length]];
   const nextId = CASE_ORDER[(i + 1) % CASE_ORDER.length];
   const flow = c.flow ? `<ol class="v-flow v-rise" aria-label="Pipeline">${c.flow.map(([t, hl]) => `<li${hl ? ' class="hl"' : ''}>${esc(t)}</li>`).join('')}</ol>` : '';
-  const bars = c.bars ? `<figure class="v-bars v-rise"><figcaption>${esc(c.bars.caption)}</figcaption>${c.bars.rows.map((r) => `<div class="v-bar"><span>${esc(r.label)}</span><span class="v-track" role="img" aria-label="${esc(r.label)}: ${esc(r.val)}"><i class="${r.warn ? 'warn' : ''}" style="--w:${r.w}%"></i></span><b>${esc(r.val)}</b></div>`).join('')}<p>${esc(c.bars.note)}</p></figure>` : '';
-  const shot = c.shot ? `<figure class="v-shot v-rise"><div class="v-shot-bar" aria-hidden="true"><i></i><i></i><i></i></div><img src="${esc(c.shot.src)}" alt="${esc(c.shot.alt)}" width="1440" height="900" decoding="async">${c.shot.mobile ? `<img class="v-phone" src="${esc(c.shot.mobile)}" alt="The same page on a phone" width="390" height="844" decoding="async">` : ''}</figure>` : '';
+  const bars = c.bars ? `<figure class="chart v-bars v-rise"><figcaption>${esc(c.bars.caption)}</figcaption>${c.bars.rows.map((r) => `<div class="bar-row"><span class="bar-label">${esc(r.label)}</span><span class="track" role="img" aria-label="${esc(r.label)}: ${esc(r.val)}"><i class="fill${r.warn ? ' warn' : ''}" style="--w:${r.w}%${r.lo ? `;--lo:${(r.lo / r.w * 100).toFixed(1)}%` : ''}"></i></span><b class="val">${esc(r.val)}</b></div>`).join('')}<p class="fig-note">${esc(c.bars.note)}</p></figure>` : '';
+  const shot = c.shot ? `<figure class="v-shot v-rise"><div class="v-shot-bar" aria-hidden="true"><i></i><i></i><i></i></div><img src="${esc(c.shot.src)}" alt="${esc(c.shot.alt)}" width="1440" height="900" decoding="async">${c.shot.mobile ? `<img class="shot-phone" src="${esc(c.shot.mobile)}" alt="The same page on a phone" width="390" height="844" decoding="async">` : ''}</figure>` : '';
   const embed = c.embed ? `<figure class="v-shot embed v-rise"><div class="shot-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span class="embed-title">Live dashboard · fully interactive</span><button class="embed-exit" type="button">Done</button><a class="embed-open" href="${esc(c.embed.src)}" target="_blank" rel="noopener">Open full screen${ARROW_UR}</a></div><iframe tabindex="-1" src="${esc(c.embed.src)}" title="${esc(c.embed.title)}" loading="lazy"></iframe><button class="embed-veil" type="button" aria-label="Activate the interactive dashboard"><span>Click to explore</span></button></figure>` : '';
   const sections = c.sections.map((s) => `<section class="v-sec v-rise"><h2>${esc(s.h)}</h2><ul>${s.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>`).join('');
   const links = c.links.map((l) => `<a class="v-link" href="${esc(l.href)}" rel="noopener noreferrer">${esc(l.label)}${ARROW_UR}</a>`).join('');
@@ -101,12 +101,12 @@ export function initViews({ gsap, lenis, scrollTo }) {
   let section = 'work';
 
   const setTheme = (t) => {
-    if (!t) { ['bg', 'ink', 'mut', 'acc', 'line'].forEach((k) => view.style.removeProperty('--v-' + k)); view.removeAttribute('data-style'); return; }
-    view.style.setProperty('--v-bg', t.bg);
-    view.style.setProperty('--v-ink', t.ink);
-    view.style.setProperty('--v-mut', t.mut);
-    view.style.setProperty('--v-acc', t.acc);
-    view.style.setProperty('--v-line', t.line);
+    if (!t) { ['bg', 'ink', 'mut', 'acc', 'line'].forEach((k) => view.style.removeProperty('--s-' + k)); view.removeAttribute('data-style'); return; }
+    view.style.setProperty('--s-bg', t.bg);
+    view.style.setProperty('--s-ink', t.ink);
+    view.style.setProperty('--s-mut', t.mut);
+    view.style.setProperty('--s-acc', t.acc);
+    view.style.setProperty('--s-line', t.line);
     view.dataset.style = t.style;
   };
 
@@ -136,7 +136,7 @@ export function initViews({ gsap, lenis, scrollTo }) {
   function animateIn(kind) {
     const rise = scroller.querySelectorAll('.v-rise');
     gsap.fromTo(rise, { y: 36, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.9, ease: 'power3.out', stagger: 0.06, delay: 0.25, clearProps: 'transform,visibility' });
-    gsap.fromTo(scroller.querySelectorAll('.v-track i'), { scaleX: 0 }, { scaleX: 1, duration: 1.1, ease: 'power3.out', stagger: 0.18, delay: 0.9 });
+    gsap.fromTo(scroller.querySelectorAll('.track .fill'), { scaleX: 0 }, { scaleX: 1, duration: 1.1, ease: 'power3.out', stagger: 0.18, delay: 0.9 });
     if (kind === '404') animate404();
   }
 

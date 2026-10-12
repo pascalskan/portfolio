@@ -11,7 +11,7 @@ export const CASES = {
     theme: { bg: '#07122a', ink: '#e8f0ff', mut: '#94aad0', acc: '#4cd2ff', line: 'rgba(120,170,255,.22)', style: 'lab' },
     lede: "A reproducible Python research platform showing that <em>how</em> you test a model changes what you conclude about it. Predicting powerlifters' competition totals from 1.4M+ public records.",
     facts: [
-      { n: '0.96 → 0.34–0.57', l: 'R² from retrospective to walk-forward testing' },
+      { n: '0.96 → 0.34\u2060–\u20600.57', l: 'R² from retrospective to walk-forward testing' },
       { n: '1.4M+', l: 'public competition records' },
       { n: '101,695', l: 'forward-in-time predictions evaluated' },
       { n: '86%', l: 'of the information gain from one feature: the previous total' },
@@ -20,9 +20,9 @@ export const CASES = {
       caption: 'Same models, same features. Only the test protocol changes.',
       rows: [
         { label: 'Retrospective', w: 97, val: 'R² ≈ 0.96' },
-        { label: 'Walk-forward', w: 57, val: 'R² ≈ 0.34–0.57', warn: true },
+        { label: 'Walk-forward', w: 57, lo: 34, val: 'R² ≈ 0.34–0.57', warn: true },
       ],
-      note: 'Raw cohort. Retrospective R² 0.955–0.970; walk-forward 0.342–0.570. MAE rises roughly five- to six-fold.',
+      note: 'Raw cohort. Retrospective R² 0.955–0.970; walk-forward 0.342–0.570. MAE rises roughly five- to six-fold. The lighter part of the bar is the range across folds.',
     },
     sections: [
       { h: 'What it found', items: [
@@ -139,7 +139,7 @@ export const CASES = {
       ] },
     ],
     embed: { src: 'dashboard/index.html', title: 'Interactive Global Economic Dashboard' },
-    stack: ['Python', 'pandas', 'Altair / Vega-Lite', 'Figma'],
+    stack: ['Python', 'pandas', 'D3', 'Figma'],
     links: [],
   },
 };

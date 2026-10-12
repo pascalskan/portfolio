@@ -9,9 +9,9 @@
 .seam-stick { position: sticky; top: 0; height: 100vh; overflow: hidden; contain: layout paint; }
 .seam .layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .seam canvas.layer { pointer-events: none; }
-.seam-cap { position: absolute; left: var(--gut); right: var(--gut); bottom: 22px; z-index: 20; display: flex; justify-content: space-between; gap: 16px; font: 500 .72rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.seam-cap { position: absolute; left: var(--gut); right: var(--gut); bottom: 22px; z-index: 20; display: flex; justify-content: space-between; gap: 16px; font: 500 var(--fs-xs)/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
 .seam-cap span:last-child { font-variant-numeric: tabular-nums; }
-@media (max-width: 720px) { .seam-cap { bottom: 16px; font-size: .64rem; } }
+@media (max-width: 720px) { .seam-cap { bottom: 16px; font-size: var(--fs-xs); } }
 
 /* 2 · About -> Work: the bars are the real index rows */
 .t2-band { position: absolute; left: 0; width: 100%; background: #0b0b0d; overflow: hidden; will-change: transform; }
@@ -21,7 +21,7 @@
 /* 4 · Forecasting -> Ledger: ruled rows fill with paper */
 .t4-rows { position: absolute; inset: 0; }
 .t4-row { position: absolute; left: 0; right: 0; height: 40px; background: #dde7d8; border-bottom: 1px solid rgba(13,42,31,.08); box-sizing: border-box; transform-origin: 0 50%; will-change: transform; }
-.t4-fig { position: absolute; top: 0; height: 40px; display: flex; align-items: center; font: 500 .8rem/1 var(--mono); letter-spacing: .06em; color: #0d2a1f; white-space: nowrap; opacity: 0; }
+.t4-fig { position: absolute; top: 0; height: 40px; display: flex; align-items: center; font: 500 var(--fs-sm)/1 var(--mono); letter-spacing: .06em; color: #0d2a1f; white-space: nowrap; opacity: 0; }
 .t4-margin { position: absolute; top: 0; bottom: 0; left: clamp(6px, 2.2vw, 32px); width: 6px; border-inline: 1px solid rgba(178,70,58,.6); transform-origin: 50% 0; }
 
 /* 5 · Ledger -> Travel */
@@ -56,7 +56,7 @@
 .t9-node.up div { bottom: 36px; }
 .t9-node.down div { top: 56px; }
 .t9-node b { display: block; font: 600 clamp(1.1rem, 2.6vw, 2rem)/1.1 var(--display); letter-spacing: -.02em; }
-.t9-node span { display: block; margin-top: 6px; font: 500 clamp(.66rem, 1.2vw, .8rem)/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.78); }
+.t9-node span { display: block; margin-top: 6px; font: 500 clamp(.75rem, 1.2vw, .8rem)/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.78); }
 .t9-head { position: absolute; left: 50%; top: calc(54% - 6.5vh); height: 13vh; width: 2px; margin-left: -1px; background: #ffe14d; border-radius: 1px; }
 .t9-head::before { content: ""; position: absolute; left: -5px; top: -7px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #ffe14d; }
 .t9-big { display: flex; justify-content: center; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-62%); text-align: center; font: 700 min(34vw, 42vh)/1 var(--display); letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,.22); }
