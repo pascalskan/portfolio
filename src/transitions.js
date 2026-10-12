@@ -435,7 +435,13 @@ function t10({ st, tl }) {
     [['left', -1], ['right', 1]].forEach(([side, dir]) => {
       const e = h('div', 't10-plate', rig);
       e.style.cssText += `;${side}:calc(28vw - ${off + th}vmin);top:calc(50% - ${ph / 2}vmin);width:${th}vmin;height:${ph}vmin;background:${col}`;
-      if (k > 0) tl.fromTo(e, { x: dir * 62 + 'vw' }, { x: '0vw', ease: 'power3.out', duration: 0.12 }, land[k] - 0.1 + (dir > 0 ? 0.015 : 0));
+      if (k > 0) {
+        // hidden until its own slide starts, so nothing sits at the sides while the bar is still small
+        const at = land[k] - 0.1 + (dir > 0 ? 0.015 : 0);
+        gsap_set(e, { autoAlpha: 0 });
+        tl.fromTo(e, { x: dir * 62 + 'vw', autoAlpha: 0 }, { x: '0vw', autoAlpha: 1, ease: 'power3.out', duration: 0.12, immediateRender: false }, at);
+        tl.set(e, { autoAlpha: 0 }, at - 0.001);
+      }
     });
     off += th + 0.25;
   });
