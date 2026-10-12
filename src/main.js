@@ -170,14 +170,19 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
 
   // Nav spy: every scene declares which nav item it belongs to (read from live positions, so transitions cannot confuse it)
   const spySecs = [...document.querySelectorAll('[data-nav]')];
+  // one read per frame, after every ScrollTrigger write of that frame (no per-event layout thrash)
+  let lastY = -1;
   const spy = () => {
+    const y = window.scrollY;
+    if (y === lastY) return;
+    lastY = y;
     const line = window.innerHeight * 0.55;
     let cur = null;
     spySecs.forEach((sec) => { const r = sec.getBoundingClientRect(); if (r.top <= line && r.bottom > line) cur = sec; });
     if (cur && cur.dataset.nav !== spy.last) { spy.last = cur.dataset.nav; setActive(spy.last); }
   };
-  window.addEventListener('scroll', spy, { passive: true });
-  cleanups.push(() => window.removeEventListener('scroll', spy));
+  gsap.ticker.add(spy);
+  cleanups.push(() => gsap.ticker.remove(spy));
   spy();
 
   // Hero intro (nav, headline text and CTA stay readable throughout: only transforms / supporting fades)

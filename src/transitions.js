@@ -265,8 +265,7 @@ function t3({ st, tl, to, ctx, next }) {
     edge.style.transform = `translate3d(0,${y - eh}px,0)`;
     edge.style.visibility = y < window.innerHeight + 2 && y > -eh ? 'visible' : 'hidden';
   };
-  window.addEventListener('scroll', place, { passive: true });
-  ctx.cleanups.push(() => window.removeEventListener('scroll', place));
+  ctx.progFns.push(place);
   ctx.refresh.push(place);
   place();
   // once the chart has finished fitting, it sinks as the section rises over it, so the two read as one movement
@@ -653,14 +652,12 @@ export function initTransitions(gsap, ScrollTrigger) {
     if (!next) return;
     const prev = next.previousElementSibling;
     const from = bgOf(prev), to = bgOf(next);
+    const progFns = []; // called once per frame while this seam is active (builders that read layout do it here, batched, instead of in their own scroll listeners)
     const seam = h('div', 'seam');
     seam.setAttribute('aria-hidden', 'true');
     seam.style.setProperty('--T', (def.T || 150) * (mobile ? 0.8 : 1) + 'vh');
     seam.style.zIndex = String(10 + idx * 2);
     if (def.over) { seam.dataset.over = '1'; next.style.position = 'relative'; next.style.zIndex = String(11 + idx * 2); }
-    if (def.over && def.riseFade) { // the section rises over the stage while fading in (scrubbed by its own position on screen)
-      gsap.fromTo(next, { opacity: 0 }, { opacity: 1, ease: 'none', scrollTrigger: { trigger: next, start: 'top 98%', end: 'top 50%', scrub: true } });
-    }
     else seam.dataset.land = String(def.land || 0.93);
     // backing: the previous section's colour behind the stage for the whole run-out below that section, so a half-faded stage never shows the page behind it
     const back = h('div', 'seam-back', seam);
@@ -690,7 +687,6 @@ export function initTransitions(gsap, ScrollTrigger) {
 
     // master: scrubbed by scroll. core: the effect (compressed into the first 90%); the rest hands over to the live page.
     let placeFn = null;
-    const progFns = []; // called with the seam's scroll progress (0..1) by builders that need it
     const master = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); progFns.forEach((f) => f(self.progress)); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; progFns.forEach((f) => f(1)); }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); progFns.forEach((f) => f(0)); } },
