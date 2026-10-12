@@ -608,7 +608,8 @@ export function initTransitions(gsap, ScrollTrigger) {
       placeFn = (m) => {
         // measured from the seam itself, so the hold is exact whatever the scroll smoothing is doing
         const nat = seam.getBoundingClientRect().bottom - window.innerHeight;
-        next.style.transform = m >= m0 && m < 0.999 && nat > 0.5 ? `translate3d(0, ${(-nat).toFixed(1)}px, 0)` : '';
+        const ny = Math.round(nat); // whole pixels only, so text never sits on a fractional offset (that is what shimmered)
+        next.style.transform = m >= m0 && m < 0.999 && ny > 0 ? `translate3d(0, ${-ny}px, 0)` : '';
       };
       const clear = () => { next.style.transform = ''; };
       ScrollTrigger.addEventListener('refreshInit', clear);
