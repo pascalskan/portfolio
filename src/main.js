@@ -157,6 +157,22 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   // Scroll transitions between sections (DOM is inserted before any other ScrollTrigger is measured)
   cleanups.push(initTransitions(gsap, ScrollTrigger));
 
+  // The scrollbar comes and goes (loader, case studies and the 404 pause scrolling) and that changes the page width without a window resize.
+  // Every transition copies live text positions, so re-measure whenever the usable width changes (else the copy sits a few px off and snaps at hand-over).
+  {
+    const de = document.documentElement;
+    let lastW = de.clientWidth, t = 0;
+    const ro = new ResizeObserver(() => {
+      const w = de.clientWidth;
+      if (w === lastW) return;
+      lastW = w;
+      clearTimeout(t);
+      t = setTimeout(() => ScrollTrigger.refresh(), 60);
+    });
+    ro.observe(de);
+    cleanups.push(() => { clearTimeout(t); ro.disconnect(); });
+  }
+
   // Anchor links go through Lenis so there is a single scroll controller.
   const onAnchor = (e) => {
     const a = e.target.closest('a[href^="#"]');
