@@ -520,7 +520,7 @@ function t11({ st, tl, ctx }) {
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
   { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 160, land: 0.92, fade: 0.08, lead: [0.18, 0.14] },
-  { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 150, land: 0.9, fade: 0.1 },
+  { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
@@ -589,13 +589,14 @@ export function initTransitions(gsap, ScrollTrigger) {
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
     const lead = def.lead || [0.18, 0.1];
     master.add(tl, lead[0]); // the previous section's last screen scrolls on for a moment before the stage comes in
-    tl.timeScale(1 / (0.9 - lead[0]));
+    const span = def.span || 1;
+    tl.timeScale(span / ((def.core || 0.9) - lead[0])); // the effect (tl 0..span) fills the seam up to `core`; nothing dead after it
     const ctx = { st, tl, gsap, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
     ctx.ctx = ctx;
     const res = def.fn(ctx) || {};
     if (!res.ownsBg && res.bg !== 'tween') tl.to(st, { backgroundColor: to, duration: 0.02, ease: 'none' }, 0.98);
     if (res.bg === 'tween') { tl.fromTo(st, { backgroundColor: from }, { backgroundColor: to, duration: 0.7 }, 0.1); }
-    tl.set({}, {}, 1);
+    tl.set({}, {}, span);
 
     master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
       .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: lead[1] }, lead[0]);
@@ -617,7 +618,7 @@ export function initTransitions(gsap, ScrollTrigger) {
 
     const capFn = res.cap;
     const onUpdate = () => {
-      const p = tl.progress();
+      const p = Math.min(1, tl.progress() ); // tl.progress() is already 0..1 over `span`
       pct.textContent = capFn ? capFn(p) : String(Math.round(p * 100)).padStart(2, '0');
       ctx.update.forEach((fn) => fn(p));
     };
