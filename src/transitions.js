@@ -449,9 +449,10 @@ function t9({ st, tl, to }) {
   const big = h('div', 't9-big', st, String(Y0));
   const state = { u: 0 };
   const year = () => Math.min(2026, Math.floor(Y0 + state.u * END));
-  tl.to(state, { u: 1, ease: 'power1.inOut', duration: 0.58, onUpdate: () => { rail.style.transform = `translate3d(${(-END * PY * state.u).toFixed(2)}vw,0,0)`; big.textContent = String(year()); } }, 0.04)
-    .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.4 }, 0.06)
-    .to([rail, big, head], { opacity: 0, ease: 'power1.inOut', duration: 0.16 }, 0.66);
+  tl.to(rail, { x: `${-END * PY}vw`, ease: 'power1.inOut', duration: 0.8, onUpdate: function () { state.u = this.progress(); big.textContent = String(year()); } }, 0.04)
+    .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.5 }, 0.1)
+    .to([head, big], { opacity: 0, ease: 'power1.inOut', duration: 0.1 }, 0.84)
+    .to(rail, { opacity: 0, ease: 'power1.inOut', duration: 0.1 }, 0.86);
   return { cap: () => String(year()), ownsBg: true };
 }
 
@@ -539,7 +540,7 @@ const DEFS = [
   { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.9, fade: 0.1 },
   { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.02, 0.12] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
-  { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 330, over: true },
+  { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 300, land: 0.88, fade: 0.09 },
   { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08, lead: [0.04, 0.09] },
   { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'], T: 280, land: 0.88, fade: 0.12 },
 ];
