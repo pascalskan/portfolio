@@ -22,6 +22,15 @@
   - Icons: Solar icon set via Iconify (inline SVG, see src/icons.js).
   - No photographs, logos or testimonials are used; none were supplied.
 -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="ld-stage"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <g class="ld-links"><path class="ld-link grey" d="M6 19L10 17L14 18"/><path class="ld-link hot" d="M18.5 14H22L26 10"/><path class="ld-link hot" d="M18.5 21H22L26 24"/></g>
+      <g fill="#8b8f97"><circle class="ld-g" cx="6" cy="19" r="1.6"/><circle class="ld-g" cx="10" cy="17" r="1.6"/><circle class="ld-g" cx="14" cy="18" r="1.6"/></g>
+      <rect class="ld-bar" x="17" y="5" width="1.5" height="22" fill="#ff7a45"/>
+      <g fill="#ff7a45"><circle class="ld-o" cx="22" cy="14" r="1.8"/><circle class="ld-o" cx="22" cy="21" r="1.8"/><circle class="ld-o" cx="26" cy="10" r="1.8"/><circle class="ld-o" cx="26" cy="24" r="1.8"/></g>
+    </svg></div>
+  <div class="ld-foot"><span class="ld-count">000</span><ul class="ld-words"><li>Planning</li><li>Evidence</li><li>Delivery</li></ul></div>
+</div>
 <a class="skip" href="#main">Skip to content</a>
 <div class="progress" aria-hidden="true"></div>
 
@@ -165,6 +174,7 @@
       </div>
     </div>
     <ul class="tags" aria-label="Technologies"><li>Python</li><li>pandas</li><li>scikit-learn</li><li>NumPy</li><li>SciPy</li><li>pytest</li><li>GitHub Actions</li></ul>
+    <a class="link case-link" href="#/case/forecasting">Read the case study<span data-icon="arrow-right" aria-hidden="true"></span></a>
     <a class="link" href="https://github.com/pascalskan/temporal-strength-performance-prediction" rel="noopener noreferrer">Repository<span data-icon="arrow-right-up" aria-hidden="true"></span></a>
   </div>
 </section>
@@ -197,6 +207,7 @@
       <li>Backend is documented but deliberately not built yet. The approval and audit model is validated in a working interface first.</li>
     </ul>
     <ul class="tags" aria-label="Technologies"><li>TypeScript</li><li>React 19</li><li>Vite</li><li>Tailwind</li><li>Zustand</li><li>TanStack Query</li><li>Playwright</li><li>axe-core</li></ul>
+    <a class="link case-link" href="#/case/ledger">Read the case study<span data-icon="arrow-right" aria-hidden="true"></span></a>
     <a class="link" href="https://github.com/pascalskan/The-Ledger" rel="noopener noreferrer">Repository<span data-icon="arrow-right-up" aria-hidden="true"></span></a>
   </div>
 </section>
@@ -222,7 +233,8 @@
       <div>
         <p class="small">Design-token layer and namespaced component library; consent-gated analytics, an EN/DE switch, and a first-party click counter that stores no personal data.</p>
         <ul class="tags" aria-label="Technologies"><li>PHP</li><li>WordPress</li><li>CSS / JS</li><li>GA4</li></ul>
-        <a class="link" href="https://travelwithoutborders.co.uk" rel="noopener noreferrer">Visit the live site<span data-icon="arrow-right-up" aria-hidden="true"></span></a>
+        <a class="link case-link" href="#/case/twb">Read the case study<span data-icon="arrow-right" aria-hidden="true"></span></a>
+    <a class="link" href="https://travelwithoutborders.co.uk" rel="noopener noreferrer">Visit the live site<span data-icon="arrow-right-up" aria-hidden="true"></span></a>
       </div>
     </div>
   </div>
@@ -241,7 +253,8 @@
         </dl>
         <p class="small">FastAPI with email notifications, rate limiting and security headers; WCAG AA contrast fixes, WebP images, clean URLs. Moved to one combined deployment when the two-service plan didn't fit the host.</p>
         <ul class="tags" aria-label="Technologies"><li>HTML / CSS / JS</li><li>Python</li><li>FastAPI</li><li>PostgreSQL</li></ul>
-        <a class="link" href="https://mgdrivepro.co.uk" rel="noopener noreferrer">Visit the site<span data-icon="arrow-right-up" aria-hidden="true"></span></a>
+        <a class="link case-link" href="#/case/drivepro">Read the case study<span data-icon="arrow-right" aria-hidden="true"></span></a>
+    <a class="link" href="https://mgdrivepro.co.uk" rel="noopener noreferrer">Visit the site<span data-icon="arrow-right-up" aria-hidden="true"></span></a>
       </div>
       <figure class="shot" data-reveal>
         <div class="shot-bar" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -273,7 +286,8 @@
       <p class="shot-missing">Screenshot to add: shots/dashboard.webp</p>
     </figure>
     <ul class="tags" aria-label="Technologies"><li>Python</li><li>pandas</li><li>Altair / Vega-Lite</li><li>Figma</li></ul>
-  </div>
+    <a class="link case-link" href="#/case/dashboard">Read the case study<span data-icon="arrow-right" aria-hidden="true"></span></a>
+      </div>
 </section>
 
 <!-- 06 ALSO BUILT · glass: violet / mint -->
@@ -405,9 +419,27 @@
 </main>
 
 <footer class="site-footer">
-  <div class="wrap foot">
-    <p>© <span id="year">2026</span> Pascal Skannavis</p>
-    <a href="#top" class="totop">Back to top<span data-icon="arrow-up" aria-hidden="true"></span></a>
+  <div class="wrap">
+    <div class="foot-top">
+      <p class="foot-line">Planning, evidence <em>and delivery.</em></p>
+      <a class="foot-mail" href="mailto:pskannavis@gmail.com"><span data-icon="letter" aria-hidden="true"></span>pskannavis@gmail.com</a>
+    </div>
+    <div class="foot-cols">
+      <nav aria-label="Footer"><h3>Navigate</h3><ul>
+        <li><a href="#about">About</a></li><li><a href="#work">Work</a></li><li><a href="#experience">Experience</a></li><li><a href="#skills">Skills</a></li><li><a href="#beyond">Beyond code</a></li>
+      </ul></nav>
+      <div><h3>Case studies</h3><ul>
+        <li><a href="#/case/forecasting">Temporal evaluation</a></li><li><a href="#/case/ledger">The Ledger</a></li><li><a href="#/case/twb">Travel Without Borders</a></li><li><a href="#/case/drivepro">M.G. Drive Pro</a></li><li><a href="#/case/dashboard">Economic Dashboard</a></li>
+      </ul></div>
+      <div><h3>Elsewhere</h3><ul>
+        <li><a href="mailto:pskannavis@gmail.com">Email</a></li><li><a href="https://github.com/pascalskan" rel="noopener noreferrer">GitHub</a></li>
+      </ul></div>
+    </div>
+    <p class="foot-word" aria-hidden="true" data-footword>Pascal Skannavis</p>
+    <div class="foot-base">
+      <p>© <span id="year">2026</span> Pascal Skannavis · Built with Vite, GSAP, Lenis and Three.js</p>
+      <a href="#top" class="totop">Back to top<span data-icon="arrow-up" aria-hidden="true"></span></a>
+    </div>
   </div>
 </footer>
 

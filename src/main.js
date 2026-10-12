@@ -5,6 +5,7 @@ import '@fontsource/instrument-serif/400-italic.css';
 import './style.css';
 import './scenes.css';
 import './transitions.css';
+import './views.css';
 
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -12,8 +13,13 @@ import Lenis from 'lenis'; // the sole smooth-scroll engine (Locomotive Scroll i
 import { createHeroScene } from './hero-scene.js';
 import { icons } from './icons.js';
 import { initTransitions, revealTrigger } from './transitions.js';
+import { runLoader } from './loader.js';
+import { initViews } from './views.js';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// opening sequence (first visit of a session only); resolves when the hero should start rising
+const introReady = runLoader(gsap);
 
 const root = document.documentElement;
 // Motion is always on by the site owner's choice.
@@ -156,6 +162,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
     const hash = a.getAttribute('href');
+    if (hash.startsWith('#/')) return; // case-study / 404 routes are handled by views.js
     const target = hash === '#top' ? 0 : document.querySelector(hash);
     if (target === null) return;
     e.preventDefault();
@@ -185,9 +192,13 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   cleanups.push(() => gsap.ticker.remove(spy));
   spy();
 
+  const views = initViews({ gsap, lenis, scrollTo: (sel, immediate) => lenis.scrollTo(document.querySelector(sel), { offset: 0, immediate: !!immediate }) });
+
   // Hero intro (nav, headline text and CTA stay readable throughout: only transforms / supporting fades)
   const heroWords = splits.get(document.querySelector('.hero h1')) || [];
-  const intro = gsap.timeline({ defaults: { ease: 'power4.out' } });
+  const intro = gsap.timeline({ defaults: { ease: 'power4.out' }, paused: true });
+  lenis.stop();
+  introReady.then(() => { if (!views.isOpen()) lenis.start(); intro.play(); });
   intro
     .from(heroWords, { yPercent: 115, duration: 1.1, stagger: 0.07 }, 0.1)
     .from('.hero .eyebrow', { y: 14, autoAlpha: 0, duration: 0.8 }, 0)
@@ -247,6 +258,25 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
       scaleX: 1, ease: 'none', stagger: 0.35,
       scrollTrigger: { trigger: chart, start: 'top 80%', end: 'bottom 50%', scrub: 0.6 },
     });
+  }
+
+  // Case studies and the 404 rise over the page as hash routes
+  cleanups.push(views.destroy);
+
+  // Footer wordmark: letters rise in as it scrolls into view, then react to the pointer
+  const fw = document.querySelector('[data-footword]');
+  if (fw) {
+    const text = fw.textContent;
+    fw.textContent = '';
+    const letters = [...text].map((ch) => { const sp = document.createElement('span'); if (ch === ' ') sp.className = 'sp'; sp.textContent = ch === ' ' ? '' : ch; fw.appendChild(sp); return sp; });
+    gsap.set(letters, { yPercent: 105 });
+    const io = new IntersectionObserver((ents) => {
+      if (!ents.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      gsap.to(letters, { yPercent: 0, duration: 1, ease: 'power4.out', stagger: 0.035 });
+    }, { threshold: 0.15 });
+    io.observe(fw);
+    cleanups.push(() => io.disconnect());
   }
 
   // Refresh measurements after fonts and media settle

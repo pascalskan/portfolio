@@ -1,5 +1,6 @@
 // Solar icon set (CC BY 4.0, https://icon-sets.iconify.design/solar/) via Iconify
 export const icons = {
+  "arrow-right": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M4 12L20 12M14 6L20 12L14 18\"/>",
   "arrow-right-up": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M6 18L18 6M18 15V6H9\"/>",
   "arrow-down": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M12 4L12 20M6 14L12 20L18 14\"/>",
   "arrow-up": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M12 20L12 4M6 10L12 4L18 10\"/>",
