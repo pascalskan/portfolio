@@ -35,9 +35,15 @@
 .t5-cloud { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,255,255,.6), rgba(255,255,255,0)); will-change: transform; }
 .seam .postmark.t5-stamp { position: absolute; margin: 0; opacity: 0; will-change: transform; }
 
-/* 6 · Travel -> Drive Pro: one wipe */
-.t6-panel { position: absolute; inset: 0; background: #111111; clip-path: inset(0 100% 0 0); }
-.t6-edge { position: absolute; top: 0; bottom: 0; left: 0; width: 6px; margin-left: -6px; background: #0ea5e9; box-shadow: 0 0 40px 8px rgba(14,165,233,.5); }
+/* 6 · Travel -> Drive Pro: L plate flips to P, then the camera zooms through */
+.t6-drop { position: absolute; left: 50%; top: 50%; width: 26vmin; height: 26vmin; margin: -13vmin 0 0 -13vmin; perspective: 130vmin; }
+.t6-zoom { position: absolute; inset: 0; will-change: transform; }
+.t6-card { position: absolute; inset: 0; transform-style: preserve-3d; }
+.t6-face { position: absolute; inset: 0; display: grid; place-items: center; background: #fafaf8; border-radius: 2vmin; box-shadow: 0 0 0 .8vmin #111, 0 3vmin 8vmin rgba(0,0,0,.4); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.t6-face b { font: 800 21vmin/1 var(--display); letter-spacing: -.04em; }
+.t6-l b { color: #d6201a; }
+.t6-p { transform: rotateY(180deg); }
+.t6-p b { color: #1a6640; }
 
 /* 7 · Dashboard chart */
 .t7-light { position: absolute; inset: 0; background: #f4f1ea; clip-path: inset(0 100% 0 0); }
