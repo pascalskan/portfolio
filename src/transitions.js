@@ -103,7 +103,7 @@ function t2({ st, tl, next, ctx, to }) {
 /* ---------------------------------------------------------------- 3 · Work → Forecasting
    The Work titles dissolve into dots that lift off the page, settle into a fitted trend with its forecast band,
    then re-form as the letters of the next heading. */
-function t3({ st, tl, to, ctx }) {
+function t3({ st, tl, to, ctx, next }) {
   const rng = rngFrom(33);
   const N = 240;
   const pts = Array.from({ length: N }, (_, i) => {
@@ -160,6 +160,21 @@ function t3({ st, tl, to, ctx }) {
   ctx.update.push(draw);
   draw(0);
   tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, duration: 0.5 }, 0.1);
+  // soft leading edge: as the section rises over the chart, a gradient in the section's own colour rides just above its top edge,
+  // so the chart dissolves into the page instead of being sliced off by a hard line
+  const edge = h('div', 't3-edge', st);
+  edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:linear-gradient(to bottom,rgba(0,0,0,0),${to.to} 78%)`;
+  const place = () => {
+    const eh = Math.round(window.innerHeight * 0.3);
+    edge.style.height = eh + 'px';
+    const y = Math.round(next.getBoundingClientRect().top);
+    edge.style.transform = `translate3d(0,${y - eh}px,0)`;
+    edge.style.visibility = y < window.innerHeight + 2 && y > -eh ? 'visible' : 'hidden';
+  };
+  window.addEventListener('scroll', place, { passive: true });
+  ctx.cleanups.push(() => window.removeEventListener('scroll', place));
+  ctx.refresh.push(place);
+  place();
   // once the chart has finished fitting, it sinks as the section rises over it, so the two read as one movement
   tl.to(L.c, { y: '26vh', opacity: 0, ease: 'power1.in', duration: 0.28 }, 0.72);
   return { ownsBg: true };
