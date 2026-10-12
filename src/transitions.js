@@ -66,7 +66,7 @@ function t1({ st, tl, ctx }) {
   const af = h('div', 't1-af', st, 'Focus · locked');
   const draw = (p) => {
     const W = st.clientWidth, H = st.clientHeight, cx = W / 2, cy = H / 2;
-    const e = clamp((p - 0.08) / 0.72), rmax = Math.hypot(W, H) * 0.64;
+    const e = clamp((p - 0.2) / 0.6), rmax = Math.hypot(W, H) * 0.64;
     const R = e <= 0 ? 0 : lerp(16, rmax, Math.pow(eio(e), 1.5));
     const th = lerp(-0.4, 0.8, eio(e));
     bl.setAttribute('viewBox', `0 0 ${W} ${H}`);
@@ -86,11 +86,11 @@ function t1({ st, tl, ctx }) {
   };
   ctx.update.push(draw);
   draw(0);
-  tl.fromTo(bloom, { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.1).to(bloom, { opacity: 0, duration: 0.25 }, 0.72)
-    .fromTo(brackets, { opacity: 0 }, { opacity: 0.85, duration: 0.2 }, 0.14).to(brackets, { opacity: 0, duration: 0.18 }, 0.74)
-    .fromTo(fb, { opacity: 0, scale: 2, svgOrigin: '50 50' }, { opacity: 1, scale: 1, svgOrigin: '50 50', ease: 'power3.out', duration: 0.22 }, 0.22)
+  tl.fromTo(bloom, { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.22).to(bloom, { opacity: 0, duration: 0.25 }, 0.72)
+    .fromTo(brackets, { opacity: 0 }, { opacity: 0.85, duration: 0.2 }, 0.28).to(brackets, { opacity: 0, duration: 0.18 }, 0.74)
+    .fromTo(fb, { opacity: 0, scale: 2, svgOrigin: '50 50' }, { opacity: 1, scale: 1, svgOrigin: '50 50', ease: 'power3.out', duration: 0.22 }, 0.34)
     .to(fb, { opacity: 0, duration: 0.15 }, 0.74)
-    .fromTo(af, { opacity: 0 }, { opacity: 0.8, duration: 0.1 }, 0.42).to(af, { opacity: 0, duration: 0.14 }, 0.74);
+    .fromTo(af, { opacity: 0 }, { opacity: 0.8, duration: 0.1 }, 0.5).to(af, { opacity: 0, duration: 0.14 }, 0.74);
 }
 
 
@@ -153,37 +153,24 @@ function t3({ st, tl, to, ctx, prev, next, seam }) {
   const L = canvasLayer(st, ctx);
   const f = (u) => 0.62 - 0.34 * u + 0.1 * Math.sin(u * 8.2) + 0.05 * Math.sin(u * 19);
   const NOW = 0.6;
-  let pin = 1, ink = [232, 240, 255];
+  let pin = 1, ink = [232, 240, 255], textCanvas = null;
   const parseRGB = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
   const measure = () => {
     const W = st.clientWidth, H = st.clientHeight;
     pin = Math.max(1, seam.offsetHeight - window.innerHeight);
-    // where the Work text sits at the moment the stage takes over
-    const pt = prev.getBoundingClientRect().top, base = window.innerHeight - prev.offsetHeight;
-    const rects = [];
-    prev.querySelectorAll('.index-list .t, .index-list .m, .index-list .n, h2 .split').forEach((el) => {
-      const r = document.createRange(); r.selectNodeContents(el);
-      [...r.getClientRects()].forEach((q) => { const y = base + (q.top - pt); if (q.width > 4 && y > -10 && y + q.height < H + 10) rects.push({ x: q.left, y, w: q.width, h: q.height, a: q.width * q.height }); });
-    });
-    const tot = rects.reduce((s, q) => s + q.a, 0);
     const rr = rngFrom(7);
-    dots.forEach((d) => {
-      if (!rects.length) { d.ax = rr() * W; d.ay = rr() * H; return; }
-      let t = rr() * tot, q = rects[0];
-      for (const c of rects) { t -= c.a; if (t <= 0) { q = c; break; } }
-      d.ax = q.x + rr() * q.w; d.ay = q.y + q.h * (0.2 + rr() * 0.6);
-    });
+    dots.forEach((d) => { d.ax = W * (0.03 + 0.94 * rr()); d.ay = H * (0.08 + 0.84 * rr()); });
     // the next heading's letters: render it off-screen and sample the pixels
     const h2 = next.querySelector('h2');
     let targets = [];
     if (h2) {
       const cs = getComputedStyle(h2);
       ink = parseRGB(cs.color).length === 3 ? parseRGB(cs.color) : ink;
-      const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
+      const oc = document.createElement('canvas'); oc.width = W; oc.height = H; textCanvas = oc;
       const og = oc.getContext('2d', { willReadFrequently: true });
       og.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
       if ('letterSpacing' in og && cs.letterSpacing !== 'normal') og.letterSpacing = cs.letterSpacing;
-      og.textBaseline = 'middle'; og.fillStyle = '#fff';
+      og.textBaseline = 'middle'; og.fillStyle = cs.color;
       const nt = next.getBoundingClientRect().top;
       let minY = H, maxY = 0;
       h2.querySelectorAll('.w').forEach((w) => {
@@ -202,6 +189,7 @@ function t3({ st, tl, to, ctx, prev, next, seam }) {
       targets.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
       dots.forEach((d, i) => { const t = targets[Math.min(targets.length - 1, Math.floor((i / N) * targets.length + rr() * 0.5))]; d.tx = t[0]; d.ty = t[1]; d.has = true; });
     } else dots.forEach((d) => { d.has = false; });
+    textCanvas = h2 ? textCanvas : null;
   };
   ctx.refresh.push(measure);
   measure();
@@ -210,7 +198,7 @@ function t3({ st, tl, to, ctx, prev, next, seam }) {
     g.clearRect(0, 0, W, H);
     const x0 = W * 0.07, x1 = W * 0.93, y0 = H * 0.18, y1 = H * 0.8;
     const X = (u) => x0 + (x1 - x0) * u, Y = (v) => y0 + (y1 - y0) * v;
-    const ex = 1 - smooth(0.66, 0.84, p);
+    const ex = 1 - smooth(0.62, 0.8, p);
     const ga = smooth(0.2, 0.55, p);
     g.strokeStyle = `rgba(120,170,255,${0.2 * ga * ex})`; g.lineWidth = 1;
     for (let i = 0; i <= 8; i++) { const x = X(i / 8); g.beginPath(); g.moveTo(x, y0); g.lineTo(x, y0 + (y1 - y0) * ga); g.stroke(); }
@@ -233,21 +221,24 @@ function t3({ st, tl, to, ctx, prev, next, seam }) {
       for (let i = 0; i <= n; i++) { const u = i / 60; i ? g.lineTo(X(u), Y(f(u))) : g.moveTo(X(u), Y(f(u))); }
       g.stroke(); g.lineWidth = 1;
     }
-    const s = Math.min(p, 0.14) * 0.9 * pin; // the dots ride the page's scroll until they let go
-    const vis = smooth(0, 0.05, p);
+    const vis = smooth(0, 0.05, p), dv = 1 - smooth(0.8, 0.93, p);
     for (const q of dots) {
-      const t1 = eio(clamp((p - 0.14 - q.d1) / 0.4));
-      const t2 = q.has ? eio(clamp((p - 0.66 - q.d2) / 0.2)) : 0;
+      const t1 = eio(clamp((p - 0.04 - q.d1 * 2.2) / 0.5));
+      const t2 = q.has ? eio(clamp((p - 0.62 - q.d2) / 0.17)) : 0;
       const cx = X(q.u), spread = q.u > NOW ? 0.05 + (q.u - NOW) * 0.16 : 0.035, cy = Y(f(q.u) + q.n * spread);
-      const w1 = Math.sin(t1 * Math.PI) * q.wob * 90, w2 = Math.sin(t2 * Math.PI) * q.wob * 40;
-      let x = lerp(q.ax, cx, t1) + w1, y = lerp(q.ay - s, cy, t1) - w1 * 0.4;
-      if (q.has) { x = lerp(x, q.tx, t2) + w2; y = lerp(y, q.ty, t2); }
+      const sx = q.ax + Math.sin(p * 9 + q.wob * 6) * 10, sy = q.ay + Math.cos(p * 7 + q.wob * 6) * 10;
+      let x = lerp(sx, cx, t1), y = lerp(sy, cy, t1);
+      if (q.has) { x = lerp(x, q.tx, t2); y = lerp(y, q.ty, t2); }
       const k = t1 * (1 - t2), m = t2;
-      const rC = lerp(lerp(242, 76, t1), ink[0], m), gC = lerp(lerp(239, 210, t1), ink[1], m), bC = lerp(lerp(232, 255, t1), ink[2], m);
-      g.fillStyle = `rgba(${rC | 0},${gC | 0},${bC | 0},${vis * lerp(lerp(0.8, 0.95, k), 1, m)})`;
+      const rC = lerp(lerp(154, 76, t1), ink[0], m), gC = lerp(lerp(154, 210, t1), ink[1], m), bC = lerp(lerp(162, 255, t1), ink[2], m);
+      const al = vis * dv * lerp(lerp(0.55, 0.95, k), 1, m);
+      g.fillStyle = `rgba(${rC | 0},${gC | 0},${bC | 0},${al})`;
       g.beginPath();
-      if (q.u > NOW && t1 > 0.9 && t2 < 0.05) { g.strokeStyle = `rgba(76,210,255,${0.9 * vis})`; g.lineWidth = 1; g.arc(x, y, 3.2, 0, 6.283); g.stroke(); } else { g.arc(x, y, lerp(2.3, 1.9, m), 0, 6.283); g.fill(); }
+      if (q.u > NOW && t1 > 0.9 && t2 < 0.05) { g.strokeStyle = `rgba(76,210,255,${0.9 * vis})`; g.lineWidth = 1; g.arc(x, y, 3.2, 0, 6.283); g.stroke(); } else { g.arc(x, y, lerp(2.4, 1.9, m), 0, 6.283); g.fill(); }
     }
+    // the dots settle into the words, which become solid
+    const wa = smooth(0.76, 0.9, p);
+    if (textCanvas && wa > 0) { g.globalAlpha = wa; g.drawImage(textCanvas, 0, 0, W, H); g.globalAlpha = 1; }
   };
   ctx.redraw = () => draw(tl.progress());
   ctx.update.push(draw);
@@ -352,31 +343,14 @@ function t5({ st, tl, to, ctx, next }) {
 }
 
 /* ---------------------------------------------------------------- 6 · Travel → Drive Pro
-   A traffic light runs red, amber, green; the green lamp swells until it fills the screen. */
-function t6({ st, tl, to }) {
-  const light = h('div', 't6-light', st, '<div class="t6-lamp r"><i></i></div><div class="t6-lamp a"><i></i></div><div class="t6-lamp g"><i></i></div>');
-  const [r, a, g] = [...light.querySelectorAll('i')];
-  const fill = h('div', 't6-fill', st);
-  const D = 10.53; // lamp diameter, vmin
-  fill.style.cssText += `;top:calc(50% + 12.5vmin);width:${D}vmin;height:${D}vmin;margin:-${D / 2}vmin 0 0 -${D / 2}vmin`;
-  const Z = { z: 0 };
-  const zoom = () => {
-    const W = st.clientWidth, H = st.clientHeight, d = (D / 100) * Math.min(W, H);
-    const target = (Math.hypot(W, H) * 2.2) / d;
-    const k = Math.exp(Math.log(target) * Z.z);
-    fill.style.transform = `translateX(-0%) scale(${k.toFixed(3)})`;
-    const m = smooth(0.7, 1, Z.z);
-    fill.style.backgroundColor = `rgb(${Math.round(lerp(34, 17, m))},${Math.round(lerp(197, 17, m))},${Math.round(lerp(94, 17, m))})`;
-  };
-  tl.fromTo(light, { y: '12vh', opacity: 0 }, { y: '0vh', opacity: 1, ease: 'power3.out', duration: 0.14 }, 0.02)
-    .fromTo(r, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.16).to(r, { opacity: 0, duration: 0.03 }, 0.34)
-    .fromTo(a, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.34).to(a, { opacity: 0, duration: 0.03 }, 0.5)
-    .fromTo(g, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.5)
-    .set(fill, { opacity: 1 }, 0.56)
-    .to(Z, { z: 1, ease: 'power1.in', duration: 0.4, onUpdate: zoom }, 0.56)
-    .to(light, { opacity: 0, duration: 0.05 }, 0.9);
-  zoom();
-  return { ownsBg: true, cap: (p) => (p < 0.34 ? 'Stop' : p < 0.5 ? 'Steady' : 'Go') };
+   One clean wipe: a blue edge sweeps across and leaves the Drive Pro black behind it. */
+function t6({ st, tl }) {
+  const panel = h('div', 't6-panel', st);
+  const edge = h('div', 't6-edge', st);
+  tl.fromTo(panel, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', ease: 'power2.inOut', duration: 0.62 }, 0.1)
+    .fromTo(edge, { left: '0%' }, { left: '100%', ease: 'power2.inOut', duration: 0.62 }, 0.1)
+    .to(edge, { opacity: 0, duration: 0.06 }, 0.68);
+  return { ownsBg: true };
 }
 
 /* ---------------------------------------------------------------- 7 · Drive Pro → Dashboard
@@ -499,9 +473,9 @@ function t9({ st, tl, to }) {
   const big = h('div', 't9-big', st, String(Y0));
   const state = { u: 0 };
   const year = () => Math.min(2026, Math.floor(Y0 + state.u * END));
-  tl.to(state, { u: 1, ease: 'power1.inOut', duration: 0.84, onUpdate: () => { rail.style.transform = `translate3d(${(-END * PY * state.u).toFixed(2)}vw,0,0)`; big.textContent = String(year()); } }, 0.04)
+  tl.to(state, { u: 1, ease: 'power1.inOut', duration: 0.58, onUpdate: () => { rail.style.transform = `translate3d(${(-END * PY * state.u).toFixed(2)}vw,0,0)`; big.textContent = String(year()); } }, 0.04)
     .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.4 }, 0.06)
-    .to([rail, big, head], { opacity: 0, ease: 'power1.inOut', duration: 0.2 }, 0.8);
+    .to([rail, big, head], { opacity: 0, ease: 'power1.inOut', duration: 0.16 }, 0.66);
   return { cap: () => String(year()), ownsBg: true };
 }
 
@@ -510,13 +484,14 @@ function t9({ st, tl, to }) {
    while it stays perfectly still; the room closes in on the lift. */
 function t10({ st, tl }) {
   const red = h('div', 't10-red', st);
+  red.style.visibility = 'hidden';
   const roll = h('div', 't10-roll', st);
   const rig = h('div', 't10-rig', roll);
   h('div', 't10-floor', rig); h('div', 't10-bar', rig); h('div', 't10-grip', rig);
   const plates = [ // kg, colour, height (vmin), thickness (vmin)
-    [25, '#d6201a', 46, 2.6], [25, '#d6201a', 46, 2.6], [20, '#1b4fd6', 46, 2.4], [15, '#f2c200', 40, 2], [10, '#1f9d4a', 33, 1.6], [5, '#f1f1f1', 26, 1.2], [2.5, '#111', 22, 1],
+    [25, '#d6201a', 46, 2.6], [20, '#1b4fd6', 46, 2.4], [15, '#f2c200', 40, 2], [10, '#1f9d4a', 33, 1.6], [5, '#f1f1f1', 26, 1.2], [2.5, '#111', 22, 1],
   ];
-  const land = plates.map((_, k) => (k === 0 ? 0 : 0.36 + (k - 1) * 0.07));
+  const land = plates.map((_, k) => (k === 0 ? 0 : 0.44 + (k - 1) * 0.06));
   let off = 0;
   plates.forEach(([kg, col, ph, th], k) => {
     [['left', -1], ['right', 1]].forEach(([side, dir]) => {
@@ -526,7 +501,8 @@ function t10({ st, tl }) {
     });
     off += th + 0.25;
   });
-  tl.fromTo(roll, { scale: 0.16, y: '-13vh', opacity: 0 }, { scale: 1, y: '0vh', opacity: 1, ease: 'power2.out', duration: 0.3 }, 0)
+  tl.fromTo(roll, { scale: 0.16, y: '-13vh', opacity: 0 }, { scale: 1, y: '0vh', opacity: 1, ease: 'power2.out', duration: 0.26 }, 0.14)
+    .set(red, { autoAlpha: 1 }, 0.74)
     .fromTo(red, { scaleY: 0.01 }, { scaleY: 1, ease: 'power3.inOut', duration: 0.24 }, 0.74)
     .to(roll, { opacity: 0, duration: 0.1 }, 0.9);
   return {
@@ -579,16 +555,16 @@ function t11({ st, tl, ctx }) {
 /* ---------------------------------------------------------------- wiring */
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 150, land: 0.92, fade: 0.08 },
+  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 160, land: 0.92, fade: 0.08, lead: [0.1, 0.14] },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 170, land: 0.9, fade: 0.1 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 200, land: 0.9, fade: 0.1 },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
-  { before: '#drivepro', fn: t6, label: 'Lights → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 210, land: 0.9, fade: 0.1 },
+  { before: '#drivepro', fn: t6, label: 'Crossing → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 170, land: 0.9, fade: 0.1 },
   { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 260, over: true },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
-  { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 270, over: true },
-  { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08 },
+  { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 330, over: true },
+  { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08, lead: [0.04, 0.09] },
   { before: '#contact', fn: t11, label: 'Igniting → Contact', ink: ['#ecc0b6', '#4a2410'], T: 280, land: 0.88, fade: 0.12 },
 ];
 
@@ -631,6 +607,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     if (def.over) { seam.dataset.over = '1'; next.style.position = 'relative'; next.style.zIndex = String(11 + idx * 2); }
     else seam.dataset.land = String(def.land || 0.93);
     const st = h('div', 'seam-stick', seam);
+    if (prev) prev.style.boxShadow = `0 100vh 0 0 ${from}`; // keeps the previous colour under the stage while the page scrolls away
     st.style.backgroundColor = from;
     next.parentNode.insertBefore(seam, next);
     if (getComputedStyle(next).position === 'static') next.style.position = 'relative';
@@ -655,13 +632,20 @@ export function initTransitions(gsap, ScrollTrigger) {
     tl.set({}, {}, 1);
 
     master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
-      .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.07 }, 0);
+      .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: (def.lead || [0, 0.07])[1] }, (def.lead || [0, 0.07])[0]);
     if (!def.over) {
       const land = def.land || 0.93, fade = def.fade || 0.07;
       master.fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
-      master.fromTo(next, { y: () => -(1 - m0) * (seam.offsetHeight - window.innerHeight) }, { y: 0, ease: 'none', duration: 1 - m0, immediateRender: false }, m0);
+      const place = () => {
+        const m = master.progress();
+        next.style.transform = m >= m0 && m < 1 ? `translate3d(0, ${(-(1 - m) * (seam.offsetHeight - window.innerHeight)).toFixed(1)}px, 0)` : '';
+      };
+      master.eventCallback('onUpdate', place);
+      const clear = () => { next.style.transform = ''; };
+      ScrollTrigger.addEventListener('refreshInit', clear);
+      cleanups.push(() => ScrollTrigger.removeEventListener('refreshInit', clear));
     }
     master.set({}, {}, 1);
 

@@ -196,6 +196,7 @@
 .lifter { position: absolute; left: 6%; bottom: -3%; width: 88%; height: auto; will-change: transform, opacity; -webkit-mask-image: linear-gradient(#000 80%, transparent 100%); mask-image: linear-gradient(#000 80%, transparent 100%); }
 .t-iron .display-m, .t-iron .beyond-grid, .t-iron .reel { position: relative; z-index: 1; }
 .t-iron .beyond-grid { margin-top: clamp(24px, 4vw, 56px); }
+@media (min-width: 901px) { .t-iron .honours { margin-top: 9vw; } }
 .t-iron .display-m { font-weight: 800; text-transform: uppercase; font-size: clamp(3.6rem, 13vw, 13rem); letter-spacing: -.055em; line-height: .82; margin-bottom: clamp(32px, 5vw, 72px); }
 .beyond-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
 .big { font-size: clamp(1.4rem, 1rem + 1.6vw, 2.4rem); line-height: 1.25; letter-spacing: -.025em; margin: 0; max-width: 28ch; }
