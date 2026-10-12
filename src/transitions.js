@@ -333,10 +333,19 @@ function t5({ st, tl, to, ctx, next }) {
   stamp.classList.add('t5-stamp');
   stamp.innerHTML = stamp.innerHTML.replace(/pm-c/g, 'pm-c2');
   stamp.style.color = '#fed700';
-  const sw = h('div', 't5-sw', st); // wrapper so the stage's stamp can fade away while the real section (with its own stamp) rises in
-  sw.style.cssText = 'position:absolute;inset:0;pointer-events:none';
-  sw.appendChild(stamp);
-  if (ctx.master) ctx.master.fromTo(sw, { opacity: 1 }, { opacity: 0, ease: 'none', duration: 0.07, immediateRender: false }, ctx.core + 0.01);
+  // the stamp lives in a fixed overlay above the sections, so it stays visible while the real section rises under it,
+  // and settles downwards onto exactly where the page's own postmark sits; the real one is shown the moment it lands
+  const ov = h('div', 't5-ov', document.body);
+  ov.style.cssText = 'position:fixed;inset:0;z-index:60;pointer-events:none;visibility:hidden';
+  stamp.style.position = 'absolute'; stamp.style.margin = '0';
+  ov.appendChild(stamp);
+  real.style.visibility = 'hidden';
+  ctx.cleanups.push(() => { ov.remove(); real.style.visibility = ''; });
+  ctx.progFns.push((m) => {
+    const on = m > 0.001 && m < 0.992;
+    ov.style.visibility = on ? 'visible' : 'hidden';
+    real.style.visibility = on ? 'hidden' : '';
+  });
   const M = { x: 0, y: 0, w: 1, dx: 0, dy: 0, sA: 1.2 };
   const S = { a: 0, g: 0 };
   const pose = () => {
@@ -347,7 +356,7 @@ function t5({ st, tl, to, ctx, next }) {
     const b = offsetBox(real, next), W = st.clientWidth, H = st.clientHeight;
     M.w = b.w; stamp.style.left = b.x + 'px'; stamp.style.top = b.y + 'px'; stamp.style.width = b.w + 'px';
     const mobile = W < 720;
-    M.dx = (mobile ? 0.7 : 0.8) * W - (b.x + b.w / 2); M.dy = 0.26 * H - (b.y + b.w / 2);
+    M.dx = (mobile ? 0.62 : 0.74) * W - (b.x + b.w / 2); M.dy = 0.23 * H - (b.y + b.w / 2); // hovers high on the screen, then descends onto the page's own postmark
     M.sA = Math.min(1.5, Math.max(1, (mobile ? 0.34 : 0.19) * W / b.w));
     pose();
   };
@@ -365,9 +374,12 @@ function t5({ st, tl, to, ctx, next }) {
     .fromTo(dest, { scale: 1, svgOrigin: '94 41' }, { scale: 3, svgOrigin: '94 41', yoyo: true, repeat: 1, duration: 0.04 }, 0.7)
     .to(plane, { opacity: 0, duration: 0.05 }, 0.7)
     .to(S, { a: 1, ease: 'power3.in', duration: 0.09, onUpdate: pose }, 0.72)
-    .to(S, { g: 1, ease: 'power2.inOut', duration: 0.18, onUpdate: pose }, 0.8)
-    .to(v, { opacity: 0, ease: 'power1.inOut', duration: 0.2 }, 0.78)
-    .to(clouds, { opacity: 0, ease: 'power1.inOut', duration: 0.2 }, 0.78);
+    ;
+  if (ctx.master) {
+    // as the section rises, the world rises with it and the stamp comes down onto the page
+    ctx.master.to(S, { g: 1, ease: 'power2.inOut', duration: 0.255, onUpdate: pose, immediateRender: false }, ctx.core + 0.02)
+      .to([v].concat(clouds), { y: '-34vh', opacity: 0, ease: 'power1.in', duration: 0.26, immediateRender: false }, ctx.core);
+  }
   poseGlobe(); posePlane(); measure();
   return { ownsBg: true };
 }
@@ -656,6 +668,20 @@ export function initTransitions(gsap, ScrollTrigger) {
     const st = h('div', 'seam-stick', seam);
     st.style.backgroundColor = from;
     next.parentNode.insertBefore(seam, next);
+    if (def.over && def.riseFade) { // soft leading edge so what is on the stage dissolves into the rising section instead of being sliced by a hard line
+      const edge = h('div', 'seam-edge', st);
+      edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:linear-gradient(to bottom,rgba(0,0,0,0),${to} 78%)`;
+      const place = () => {
+        const eh = Math.round(window.innerHeight * 0.3), y = Math.round(next.getBoundingClientRect().top);
+        edge.style.height = eh + 'px';
+        edge.style.transform = `translate3d(0,${y - eh}px,0)`;
+        edge.style.visibility = y < window.innerHeight + 2 && y > -eh ? 'visible' : 'hidden';
+      };
+      window.addEventListener('scroll', place, { passive: true });
+      cleanups.push(() => window.removeEventListener('scroll', place));
+      refreshFns.push(place);
+      place();
+    }
     if (getComputedStyle(next).position === 'static') next.style.position = 'relative';
 
     const capEl = h('div', 'seam-cap', st, `<span>${def.label}</span><span class="pct">00</span>`);
@@ -664,16 +690,17 @@ export function initTransitions(gsap, ScrollTrigger) {
 
     // master: scrubbed by scroll. core: the effect (compressed into the first 90%); the rest hands over to the live page.
     let placeFn = null;
+    const progFns = []; // called with the seam's scroll progress (0..1) by builders that need it
     const master = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); } },
+      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); progFns.forEach((f) => f(self.progress)); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; progFns.forEach((f) => f(1)); }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); progFns.forEach((f) => f(0)); } },
     });
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
     const lead = def.lead || [0.18, 0.1];
     master.add(tl, lead[0]); // the previous section's last screen scrolls on for a moment before the stage comes in
     const span = def.span || 1;
     tl.timeScale(span / ((def.core || 0.9) - lead[0])); // the effect (tl 0..span) fills the seam up to `core`; nothing dead after it
-    const ctx = { st, tl, gsap, master, core: def.core || 0.9, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
+    const ctx = { st, tl, gsap, master, progFns, core: def.core || 0.9, next, prev, seam, cap: capEl, to: { from, to }, update: [], refresh: refreshFns, cleanups, redraw() {} };
     ctx.ctx = ctx;
     const res = def.fn(ctx) || {};
     if (!res.ownsBg && res.bg !== 'tween') tl.to(st, { backgroundColor: to, duration: 0.02, ease: 'none' }, 0.98);
