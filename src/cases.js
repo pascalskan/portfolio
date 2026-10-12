@@ -63,7 +63,7 @@ export const CASES = {
         'Backend is documented but deliberately not built yet. The approval and audit model is validated in a working interface first.',
       ] },
     ],
-    shot: { src: 'shots/ledger-review-centre.webp', alt: 'Screenshot of The Ledger Review Centre, shown with invented demo data' },
+    shot: { mobile: 'shots/ledger-worker-mobile.webp', src: 'shots/ledger-review-centre.webp', alt: 'Screenshot of The Ledger Review Centre, shown with invented demo data' },
     stack: ['TypeScript', 'React 19', 'Vite', 'Tailwind', 'Zustand', 'TanStack Query', 'Playwright', 'axe-core'],
     links: [{ label: 'Repository', href: 'https://github.com/pascalskan/The-Ledger' }],
   },
