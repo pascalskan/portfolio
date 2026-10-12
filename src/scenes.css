@@ -190,14 +190,15 @@
 /* ---------- Beyond code: iron, crimson / gold ---------- */
 .t-iron { --s-bg: #5e0b10; --s-ink: #f6ecdc; --s-mut: #ecc0b6; --s-acc: #f3c969; --s-line: rgba(246,236,220,.28); }
 .t-iron { overflow: clip; }
-.t-iron .wrap { position: relative; padding-top: clamp(48px, 15vh, 150px); } /* lands lower, like the other sections, so there is room to scroll into it */
-.iron-stage { position: absolute; z-index: 0; top: clamp(56px, 5vw, 76px); right: 0; width: clamp(240px, 29vw, 420px); aspect-ratio: 1; pointer-events: none; }
+.t-iron .wrap { position: relative; padding-top: clamp(40px, 9vh, 110px); } /* lands lower, like the other sections, so there is room to scroll into it */
+.t-iron { --plate: clamp(220px, min(24vw, 38vh), 380px); }
+.iron-stage { position: absolute; z-index: 0; top: clamp(60px, 11vh, 120px); right: 0; width: var(--plate, clamp(240px, 29vw, 420px)); aspect-ratio: 1; pointer-events: none; }
 .plate { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 30px 50px rgba(0,0,0,.45)); will-change: transform; }
 .lifter { position: absolute; left: 6%; bottom: -3%; width: 88%; height: auto; will-change: transform, opacity; -webkit-mask-image: linear-gradient(#000 80%, transparent 100%); mask-image: linear-gradient(#000 80%, transparent 100%); }
 .t-iron .display-m, .t-iron .beyond-grid, .t-iron .reel { position: relative; z-index: 1; }
-.t-iron .beyond-grid { margin-top: clamp(24px, 4vw, 56px); }
-@media (min-width: 901px) { .t-iron .honours { margin-top: 9vw; } }
-.t-iron .display-m { font-weight: 800; text-transform: uppercase; font-size: clamp(3.6rem, 13vw, 13rem); letter-spacing: -.055em; line-height: .82; margin-bottom: clamp(32px, 5vw, 72px); }
+.t-iron .beyond-grid { margin-top: clamp(16px, 3vh, 40px); }
+@media (min-width: 901px) { .t-iron .honours { margin-top: 2vh; } }
+.t-iron .display-m { font-weight: 800; text-transform: uppercase; font-size: clamp(3.6rem, min(13vw, 21vh), 13rem); letter-spacing: -.055em; line-height: .82; margin-bottom: clamp(20px, 3.5vh, 56px); }
 .beyond-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
 .big { font-size: clamp(1.4rem, 1rem + 1.6vw, 2.4rem); line-height: 1.25; letter-spacing: -.025em; margin: 0; max-width: 28ch; }
 .honours li { display: grid; grid-template-columns: clamp(165px, 13vw, 190px) 1fr; gap: 24px 28px; align-items: baseline; padding: 16px 0; border-top: 1px solid var(--s-line); }

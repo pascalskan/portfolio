@@ -527,6 +527,9 @@ export function initTransitions(gsap, ScrollTrigger) {
     seam.style.zIndex = String(10 + idx * 2);
     if (def.over) { seam.dataset.over = '1'; next.style.position = 'relative'; next.style.zIndex = String(11 + idx * 2); }
     else seam.dataset.land = String(def.land || 0.93);
+    // backing: the previous section's colour behind the stage for the whole run-out below that section, so a half-faded stage never shows the page behind it
+    const back = def.over ? null : h('div', 'seam-back', seam);
+    if (back) back.style.cssText = `position:absolute;left:0;right:0;top:100vh;bottom:0;background:${from}`;
     const st = h('div', 'seam-stick', seam);
     if (prev) prev.style.boxShadow = `0 100vh 0 0 ${from}`; // keeps the previous colour under the stage while the page scrolls away
     st.style.backgroundColor = from;
@@ -560,6 +563,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     if (!def.over) {
       const land = def.land || 0.93, fade = Math.min(def.fade || 0.07, 0.97 - land);
       master.fromTo(st, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
+      master.fromTo(back, { opacity: 1 }, { opacity: 0, ease: 'power1.inOut', duration: fade, immediateRender: false }, land);
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
       placeFn = (m) => {
