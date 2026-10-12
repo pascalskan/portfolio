@@ -209,7 +209,7 @@
 .reel figcaption { margin-top: 22px; text-align: center; font-family: var(--mono); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--s-mut); }
 
 /* ---------- Contact: ember / black ---------- */
-.t-ember { --s-bg: #ff7a45; --s-ink: #1a0b04; --s-mut: #4a2410; --s-acc: #1a0b04; --s-line: rgba(26,11,4,.4); padding-bottom: clamp(96px, 14vw, 200px); }
+.t-ember { min-height: 100vh; --s-bg: #ff7a45; --s-ink: #1a0b04; --s-mut: #4a2410; --s-acc: #1a0b04; --s-line: rgba(26,11,4,.4); padding-bottom: clamp(96px, 14vw, 200px); }
 .t-ember .display { font-weight: 800; font-size: clamp(4rem, 18vw, 19rem); letter-spacing: -.07em; line-height: .8; margin-bottom: clamp(24px, 4vw, 56px); }
 .t-ember .lede { color: var(--s-ink); max-width: 46ch; }
 .t-ember .eyebrow { color: var(--s-ink); }

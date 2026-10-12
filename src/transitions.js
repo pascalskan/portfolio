@@ -618,7 +618,9 @@ export function initTransitions(gsap, ScrollTrigger) {
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
       placeFn = (m) => {
-        next.style.transform = m >= m0 && m < 0.999 ? `translate3d(0, ${(-(1 - m) * (seam.offsetHeight - window.innerHeight)).toFixed(1)}px, 0)` : '';
+        // measured from the seam itself, so the hold is exact whatever the scroll smoothing is doing
+        const nat = seam.getBoundingClientRect().bottom - window.innerHeight;
+        next.style.transform = m >= m0 && m < 0.999 && nat > 0.5 ? `translate3d(0, ${(-nat).toFixed(1)}px, 0)` : '';
       };
       const clear = () => { next.style.transform = ''; };
       ScrollTrigger.addEventListener('refreshInit', clear);

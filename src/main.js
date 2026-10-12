@@ -186,13 +186,17 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   // Page progress hairline
   gsap.to('.progress', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.2 } });
 
-  // Nav spy: every scene declares which nav item it belongs to
-  document.querySelectorAll('[data-nav]').forEach((sec) => {
-    ScrollTrigger.create({
-      trigger: sec, start: 'top 55%', end: 'bottom 55%',
-      onToggle: (self) => { if (self.isActive) setActive(sec.dataset.nav); },
-    });
-  });
+  // Nav spy: every scene declares which nav item it belongs to (read from live positions, so transitions cannot confuse it)
+  const spySecs = [...document.querySelectorAll('[data-nav]')];
+  const spy = () => {
+    const line = window.innerHeight * 0.55;
+    let cur = null;
+    spySecs.forEach((sec) => { const r = sec.getBoundingClientRect(); if (r.top <= line && r.bottom > line) cur = sec; });
+    if (cur && cur.dataset.nav !== spy.last) { spy.last = cur.dataset.nav; setActive(spy.last); }
+  };
+  window.addEventListener('scroll', spy, { passive: true });
+  cleanups.push(() => window.removeEventListener('scroll', spy));
+  spy();
 
   // Hero intro (nav, headline text and CTA stay readable throughout: only transforms / supporting fades)
   const heroWords = splits.get(document.querySelector('.hero h1')) || [];
