@@ -284,6 +284,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const veil = box.querySelector('.embed-veil');
     if (veil) veil.tabIndex = on ? -1 : 0;
     const f = box.querySelector('iframe');
+    if (f) f.tabIndex = on ? 0 : -1;
     if (on && f) { try { f.focus({ preventScroll: true }); } catch (_) { /* noop */ } }
   };
   // keys pressed inside the dashboard never reach this document, so listen for Escape inside it too (same origin).
