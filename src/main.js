@@ -99,34 +99,16 @@ function setActive(id) {
 /* ---------- Hero WebGL scene (optional; static poster otherwise) ---------- */
 const stage = document.querySelector('.hero-stage');
 let scene = null;
-const picker = document.querySelector('.bg-picker');
 {
-  let bg = 'contours';
-  try {
-    bg = new URLSearchParams(location.search).get('bg') || localStorage.getItem('bg') || 'contours';
-  } catch (_) { /* noop */ }
-  if (!['contours', 'network', 'ripple', 'waves', 'aurora', 'halftone'].includes(bg)) bg = 'contours';
   scene = createHeroScene({
     stage,
     canvas: stage.querySelector('.hero-canvas'),
-    onFail: () => { stage.classList.remove('gl-on'); if (picker) picker.hidden = true; },
-    variant: bg,
+    onFail: () => { stage.classList.remove('gl-on'); },
+    variant: 'network',
   });
   if (scene) {
     stage.classList.add('gl-on');
     cleanups.push(scene.destroy);
-    if (picker) {
-      picker.hidden = false;
-      const mark = (name) => picker.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bg === name)));
-      mark(bg);
-      picker.addEventListener('click', (e) => {
-        const b = e.target.closest('button[data-bg]');
-        if (!b) return;
-        scene.setVariant(b.dataset.bg);
-        mark(b.dataset.bg);
-        try { localStorage.setItem('bg', b.dataset.bg); } catch (_) { /* noop */ }
-      });
-    }
   }
 }
 

@@ -325,7 +325,6 @@ export function createHeroScene({ stage, canvas, onFail, variant = 'contours' })
   ro.observe(stage);
 
   const onPointer = (e) => {
-    if (e.target.closest && e.target.closest('.bg-picker')) return;
     const r = stage.getBoundingClientRect();
     target.set(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1));
     lastPointer = performance.now();
