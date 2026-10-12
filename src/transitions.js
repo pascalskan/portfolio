@@ -146,104 +146,64 @@ function t2({ st, tl, next, ctx, to }) {
 /* ---------------------------------------------------------------- 3 · Work → Forecasting
    The Work titles dissolve into dots that lift off the page, settle into a fitted trend with its forecast band,
    then re-form as the letters of the next heading. */
-function t3({ st, tl, to, ctx, prev, next, seam }) {
+function t3({ st, tl, to, ctx }) {
   const rng = rngFrom(33);
-  const N = 520;
-  const dots = Array.from({ length: N }, (_, i) => ({ u: (i + rng() * 0.6) / N, n: (rng() - 0.5) * 2, d1: rng() * 0.14, d2: rng() * 0.1, wob: rng() - 0.5, r: rng(), ax: 0, ay: 0, tx: 0, ty: 0 }));
+  const N = 240;
+  const pts = Array.from({ length: N }, (_, i) => {
+    const u = (i + rng() * 0.6) / N;
+    return { u, sx: rng(), sy: rng(), d: rng() * 0.38, n: (rng() - 0.5) * 2, wob: rng() * 6.28 };
+  });
   const L = canvasLayer(st, ctx);
   const f = (u) => 0.62 - 0.34 * u + 0.1 * Math.sin(u * 8.2) + 0.05 * Math.sin(u * 19);
   const NOW = 0.6;
-  let pin = 1, ink = [232, 240, 255], textCanvas = null;
-  const parseRGB = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
-  const measure = () => {
-    const W = st.clientWidth, H = st.clientHeight;
-    pin = Math.max(1, seam.offsetHeight - window.innerHeight);
-    const rr = rngFrom(7);
-    dots.forEach((d) => { d.ax = W * (0.03 + 0.94 * rr()); d.ay = H * (0.08 + 0.84 * rr()); });
-    // the next heading's letters: render it off-screen and sample the pixels
-    const h2 = next.querySelector('h2');
-    let targets = [];
-    if (h2) {
-      const cs = getComputedStyle(h2);
-      ink = parseRGB(cs.color).length === 3 ? parseRGB(cs.color) : ink;
-      const oc = document.createElement('canvas'); oc.width = W; oc.height = H; textCanvas = oc;
-      const og = oc.getContext('2d', { willReadFrequently: true });
-      og.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-      if ('letterSpacing' in og && cs.letterSpacing !== 'normal') og.letterSpacing = cs.letterSpacing;
-      og.textBaseline = 'middle'; og.fillStyle = cs.color;
-      const nt = next.getBoundingClientRect().top;
-      let minY = H, maxY = 0;
-      h2.querySelectorAll('.w').forEach((w) => {
-        const wi = w.querySelector('.wi'); if (!wi) return;
-        const x = wi.getBoundingClientRect().left, y = w.getBoundingClientRect().top - nt + wi.offsetHeight / 2;
-        og.fillText(wi.textContent, x, y);
-        minY = Math.min(minY, y - wi.offsetHeight); maxY = Math.max(maxY, y + wi.offsetHeight);
-      });
-      const y0 = Math.max(0, Math.floor(minY)), y1 = Math.min(H, Math.ceil(maxY));
-      if (y1 > y0) {
-        const data = og.getImageData(0, y0, W, y1 - y0).data, step = Math.max(3, Math.round(W / 230));
-        for (let y = 0; y < y1 - y0; y += step) for (let x = 0; x < W; x += step) if (data[(y * W + x) * 4 + 3] > 120) targets.push([x + (rr() - 0.5) * 1.5, y0 + y + (rr() - 0.5) * 1.5]);
-      }
-    }
-    if (targets.length) {
-      targets.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-      dots.forEach((d, i) => { const t = targets[Math.min(targets.length - 1, Math.floor((i / N) * targets.length + rr() * 0.5))]; d.tx = t[0]; d.ty = t[1]; d.has = true; });
-    } else dots.forEach((d) => { d.has = false; });
-    textCanvas = h2 ? textCanvas : null;
-  };
-  ctx.refresh.push(measure);
-  measure();
   const draw = (p) => {
     const { g, size } = L; const W = size.w, H = size.h;
     g.clearRect(0, 0, W, H);
     const x0 = W * 0.07, x1 = W * 0.93, y0 = H * 0.18, y1 = H * 0.8;
     const X = (u) => x0 + (x1 - x0) * u, Y = (v) => y0 + (y1 - y0) * v;
-    const ex = 1 - smooth(0.62, 0.8, p);
-    const ga = smooth(0.2, 0.55, p);
-    g.strokeStyle = `rgba(120,170,255,${0.2 * ga * ex})`; g.lineWidth = 1;
+    // axes + grid draw in
+    const ga = smooth(0.15, 0.6, p);
+    g.strokeStyle = `rgba(120,170,255,${0.2 * ga})`; g.lineWidth = 1;
     for (let i = 0; i <= 8; i++) { const x = X(i / 8); g.beginPath(); g.moveTo(x, y0); g.lineTo(x, y0 + (y1 - y0) * ga); g.stroke(); }
     for (let i = 0; i <= 5; i++) { const y = Y(i / 5); g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + (x1 - x0) * ga, y); g.stroke(); }
-    const bandA = smooth(0.5, 0.64, p) * ex;
+    // forecast band
+    const bandA = smooth(0.62, 0.92, p);
     if (bandA > 0) {
       g.fillStyle = `rgba(76,210,255,${0.16 * bandA})`; g.beginPath();
       const s0 = Math.floor(NOW * 60);
-      for (let i = s0; i <= 60; i++) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16; g.lineTo(X(u), Y(f(u) - w)); }
-      for (let i = 60; i >= s0; i--) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16; g.lineTo(X(u), Y(f(u) + w)); }
+      for (let i = s0; i <= 60; i++) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16 * bandA; g.lineTo(X(u), Y(f(u) - w)); }
+      for (let i = 60; i >= s0; i--) { const u = i / 60, w = ((u - NOW) / (1 - NOW)) * 0.16 * bandA; g.lineTo(X(u), Y(f(u) + w)); }
       g.closePath(); g.fill();
       g.setLineDash([6, 6]); g.strokeStyle = `rgba(76,210,255,${0.7 * bandA})`; g.beginPath(); g.moveTo(X(NOW), y0 - 6); g.lineTo(X(NOW), y1 + 6); g.stroke(); g.setLineDash([]);
       g.fillStyle = `rgba(232,240,255,${0.8 * bandA})`; g.font = '500 11px "JetBrains Mono Variable", monospace';
       g.fillText('now', X(NOW) - 28, y0 - 12); g.fillText('forecast →', X(NOW) + 10, y0 - 12);
     }
-    const lp = smooth(0.42, 0.62, p);
-    if (lp > 0 && ex > 0) {
-      g.strokeStyle = `rgba(76,210,255,${ex})`; g.lineWidth = 2.5; g.beginPath();
+    // points: scattered → fitted
+    for (const q of pts) {
+      const t = eio(clamp((p - q.d) / 0.5));
+      const tx = X(q.u), spread = q.u > NOW ? 0.05 + (q.u - NOW) * 0.16 : 0.035;
+      const ty = Y(f(q.u) + q.n * spread);
+      const sx = W * (0.03 + 0.94 * q.sx) + Math.sin(p * 9 + q.wob) * 10, sy = H * (0.08 + 0.84 * q.sy) + Math.cos(p * 7 + q.wob) * 10;
+      const x = lerp(sx, tx, t), y = lerp(sy, ty, t);
+      const k = t;
+      g.fillStyle = `rgba(${Math.round(lerp(154, 76, k))},${Math.round(lerp(154, 210, k))},${Math.round(lerp(162, 255, k))},${lerp(0.55, 0.95, k)})`;
+      g.beginPath();
+      if (q.u > NOW && k > 0.9) { g.strokeStyle = 'rgba(76,210,255,.9)'; g.arc(x, y, 3.2, 0, 6.283); g.stroke(); } else { g.arc(x, y, 2.4, 0, 6.283); g.fill(); }
+    }
+    // trend line draws left → right
+    const lp = smooth(0.5, 0.88, p);
+    if (lp > 0) {
+      g.strokeStyle = '#4cd2ff'; g.lineWidth = 2.5; g.beginPath();
       const n = Math.floor(60 * lp);
       for (let i = 0; i <= n; i++) { const u = i / 60; i ? g.lineTo(X(u), Y(f(u))) : g.moveTo(X(u), Y(f(u))); }
       g.stroke(); g.lineWidth = 1;
     }
-    const vis = smooth(0, 0.05, p), dv = 1 - smooth(0.8, 0.93, p);
-    for (const q of dots) {
-      const t1 = eio(clamp((p - 0.04 - q.d1 * 2.2) / 0.5));
-      const t2 = q.has ? eio(clamp((p - 0.62 - q.d2) / 0.17)) : 0;
-      const cx = X(q.u), spread = q.u > NOW ? 0.05 + (q.u - NOW) * 0.16 : 0.035, cy = Y(f(q.u) + q.n * spread);
-      const sx = q.ax + Math.sin(p * 9 + q.wob * 6) * 10, sy = q.ay + Math.cos(p * 7 + q.wob * 6) * 10;
-      let x = lerp(sx, cx, t1), y = lerp(sy, cy, t1);
-      if (q.has) { x = lerp(x, q.tx, t2); y = lerp(y, q.ty, t2); }
-      const k = t1 * (1 - t2), m = t2;
-      const rC = lerp(lerp(154, 76, t1), ink[0], m), gC = lerp(lerp(154, 210, t1), ink[1], m), bC = lerp(lerp(162, 255, t1), ink[2], m);
-      const al = vis * dv * lerp(lerp(0.55, 0.95, k), 1, m);
-      g.fillStyle = `rgba(${rC | 0},${gC | 0},${bC | 0},${al})`;
-      g.beginPath();
-      if (q.u > NOW && t1 > 0.9 && t2 < 0.05) { g.strokeStyle = `rgba(76,210,255,${0.9 * vis})`; g.lineWidth = 1; g.arc(x, y, 3.2, 0, 6.283); g.stroke(); } else { g.arc(x, y, lerp(2.4, 1.9, m), 0, 6.283); g.fill(); }
-    }
-    // the dots settle into the words, which become solid
-    const wa = smooth(0.76, 0.9, p);
-    if (textCanvas && wa > 0) { g.globalAlpha = wa; g.drawImage(textCanvas, 0, 0, W, H); g.globalAlpha = 1; }
   };
   ctx.redraw = () => draw(tl.progress());
   ctx.update.push(draw);
   draw(0);
-  tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, duration: 0.4 }, 0.12);
+  tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, duration: 0.5 }, 0.1);
+  tl.to(L.c, { opacity: 0, ease: 'power1.inOut', duration: 0.14 }, 0.8);
   return { ownsBg: true };
 }
 
