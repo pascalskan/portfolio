@@ -346,7 +346,10 @@ function chartMarkup(ink) {
   g += `<text class="ct tx" x="140" y="39.4" font-family="JetBrains Mono Variable, monospace" font-size="4" font-weight="600" fill="${ink}" text-anchor="middle">100</text>`;
   return g;
 }
-function t7({ st, tl, gsap }) {
+function t7({ st, tl: main, gsap }) {
+  const tl = gsap.timeline({ defaults: { ease: 'none' } });
+  tl.timeScale(1 / 0.9);
+  main.add(tl, 0.1); // hold the dark stage for a beat before the chart starts
   const mk = (ink, parent) => svg(chartMarkup(ink), 'layer', parent, { viewBox: '0 0 160 90', preserveAspectRatio: 'xMidYMid meet' });
   const dark = mk('#ffffff', st);
   const light = h('div', 't7-light', st);
@@ -534,7 +537,7 @@ const DEFS = [
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 200, land: 0.9, fade: 0.1 },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
   { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.9, fade: 0.1 },
-  { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 260, over: true },
+  { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.02, 0.12] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
   { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 330, over: true },
   { before: '#beyond', fn: t10, label: 'Loading → Beyond code', ink: ['#ffffff', '#ecc0b6'], T: 240, land: 0.92, fade: 0.08, lead: [0.04, 0.09] },
