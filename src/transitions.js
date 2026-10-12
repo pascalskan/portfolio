@@ -303,27 +303,14 @@ function t5({ st, tl, to, ctx, next }) {
 }
 
 /* ---------------------------------------------------------------- 6 · Travel → Drive Pro
-   A learner plate drops in, flips to a pass (P) plate, then the camera zooms through it into the Drive Pro black. */
-function t6({ st, tl }) {
+   A learner plate drops in, settles, then lifts away upwards while the Drive Pro section fades in beneath it. */
+function t6({ st, tl, to }) {
   const drop = h('div', 't6-drop', st);
-  const zoomEl = h('div', 't6-zoom', drop);
-  const card = h('div', 't6-card', zoomEl, '<div class="t6-face t6-l"><b>L</b></div><div class="t6-face t6-p"><b>P</b></div>');
-  const faces = [...card.querySelectorAll('.t6-face')], letters = [...card.querySelectorAll('b')];
-  const Z = { z: 0 };
-  const zoom = () => {
-    const W = st.clientWidth, H = st.clientHeight, d = 0.26 * Math.min(W, H);
-    const target = (Math.hypot(W, H) * 2.4) / d;
-    zoomEl.style.transform = `scale(${Math.exp(Math.log(target) * Z.z).toFixed(3)})`;
-    const m = smooth(0.55, 0.95, Z.z);
-    const c = Math.round(lerp(250, 17, m));
-    faces.forEach((f) => { f.style.backgroundColor = `rgb(${c},${c},${Math.round(lerp(248, 17, m))})`; f.style.boxShadow = m > 0.3 ? 'none' : ''; });
-    letters.forEach((l) => { l.style.opacity = String(1 - smooth(0.35, 0.8, Z.z)); });
-  };
-  tl.fromTo(drop, { y: '-70vh', rotation: -9 }, { y: '0vh', rotation: 0, ease: 'power3.out', duration: 0.22 }, 0.03)
-    .fromTo(card, { rotationY: 0 }, { rotationY: 180, ease: 'power2.inOut', duration: 0.2 }, 0.38)
-    .to(Z, { z: 1, ease: 'power2.in', duration: 0.38, onUpdate: zoom }, 0.6);
-  zoom();
-  return { ownsBg: true, cap: (p) => (p < 0.38 ? 'Learner' : p < 0.6 ? 'Passed' : 'Go') };
+  const card = h('div', 't6-card', drop, '<div class="t6-face t6-l"><b>L</b></div>');
+  tl.fromTo(drop, { y: '-70vh', rotation: -9 }, { y: '0vh', rotation: 0, ease: 'power3.out', duration: 0.24 }, 0.03)
+    .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.3 }, 0.34)
+    .to(drop, { y: '-85vh', rotation: 6, ease: 'power2.in', duration: 0.36 }, 0.56);
+  return { ownsBg: true, cap: () => 'Learner' };
 }
 
 /* ---------------------------------------------------------------- 7 · Drive Pro → Dashboard
@@ -537,7 +524,7 @@ const DEFS = [
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
-  { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.9, fade: 0.1 },
+  { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.6, fade: 0.36 },
   { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.02, 0.12] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
   { before: '#experience', fn: t9, label: 'Scrubbing → Experience', ink: ['#c8bcf2', '#ffffff'], T: 300, land: 0.88, fade: 0.09 },
