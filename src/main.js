@@ -4,12 +4,14 @@ import '@fontsource/instrument-serif/400.css';
 import '@fontsource/instrument-serif/400-italic.css';
 import './style.css';
 import './scenes.css';
+import './transitions.css';
 
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis'; // the sole smooth-scroll engine (Locomotive Scroll is deliberately not installed)
 import { createHeroScene } from './hero-scene.js';
 import { icons } from './icons.js';
+import { initTransitions, revealTrigger } from './transitions.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -97,34 +99,16 @@ function setActive(id) {
 /* ---------- Hero WebGL scene (optional; static poster otherwise) ---------- */
 const stage = document.querySelector('.hero-stage');
 let scene = null;
-const picker = document.querySelector('.bg-picker');
 {
-  let bg = 'contours';
-  try {
-    bg = new URLSearchParams(location.search).get('bg') || localStorage.getItem('bg') || 'contours';
-  } catch (_) { /* noop */ }
-  if (!['contours', 'network', 'ripple', 'waves', 'aurora', 'halftone'].includes(bg)) bg = 'contours';
   scene = createHeroScene({
     stage,
     canvas: stage.querySelector('.hero-canvas'),
-    onFail: () => { stage.classList.remove('gl-on'); if (picker) picker.hidden = true; },
-    variant: bg,
+    onFail: () => { stage.classList.remove('gl-on'); },
+    variant: 'network',
   });
   if (scene) {
     stage.classList.add('gl-on');
     cleanups.push(scene.destroy);
-    if (picker) {
-      picker.hidden = false;
-      const mark = (name) => picker.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bg === name)));
-      mark(bg);
-      picker.addEventListener('click', (e) => {
-        const b = e.target.closest('button[data-bg]');
-        if (!b) return;
-        scene.setVariant(b.dataset.bg);
-        mark(b.dataset.bg);
-        try { localStorage.setItem('bg', b.dataset.bg); } catch (_) { /* noop */ }
-      });
-    }
   }
 }
 
@@ -164,6 +148,9 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   gsap.ticker.lagSmoothing(0);
   cleanups.push(() => { gsap.ticker.remove(tick); lenis.destroy(); });
 
+  // Scroll transitions between sections (DOM is inserted before any other ScrollTrigger is measured)
+  cleanups.push(initTransitions(gsap, ScrollTrigger));
+
   // Anchor links go through Lenis so there is a single scroll controller.
   const onAnchor = (e) => {
     const a = e.target.closest('a[href^="#"]');
@@ -172,7 +159,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const target = hash === '#top' ? 0 : document.querySelector(hash);
     if (target === null) return;
     e.preventDefault();
-    lenis.scrollTo(target, { offset: hash === '#top' ? 0 : -64, duration: 1.4 });
+    lenis.scrollTo(target, { offset: 0, duration: 1.4 });
     if (hash !== '#top') history.replaceState(null, '', hash);
   };
   document.addEventListener('click', onAnchor);
@@ -181,13 +168,22 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   // Page progress hairline
   gsap.to('.progress', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.2 } });
 
-  // Nav spy: every scene declares which nav item it belongs to
-  document.querySelectorAll('[data-nav]').forEach((sec) => {
-    ScrollTrigger.create({
-      trigger: sec, start: 'top 55%', end: 'bottom 55%',
-      onToggle: (self) => { if (self.isActive) setActive(sec.dataset.nav); },
-    });
-  });
+  // Nav spy: every scene declares which nav item it belongs to (read from live positions, so transitions cannot confuse it)
+  const spySecs = [...document.querySelectorAll('[data-nav]')];
+  // one read per frame, after every ScrollTrigger write of that frame (no per-event layout thrash)
+  let lastY = -1;
+  const spy = () => {
+    const y = window.scrollY;
+    if (y === lastY) return;
+    lastY = y;
+    const line = window.innerHeight * 0.55;
+    let cur = null;
+    spySecs.forEach((sec) => { const r = sec.getBoundingClientRect(); if (r.top <= line && r.bottom > line) cur = sec; });
+    if (cur && cur.dataset.nav !== spy.last) { spy.last = cur.dataset.nav; setActive(spy.last); }
+  };
+  gsap.ticker.add(spy);
+  cleanups.push(() => gsap.ticker.remove(spy));
+  spy();
 
   // Hero intro (nav, headline text and CTA stay readable throughout: only transforms / supporting fades)
   const heroWords = splits.get(document.querySelector('.hero h1')) || [];
@@ -203,22 +199,27 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
 
   // Word-by-word heading reveals
   headings.forEach((h) => {
-    if (h.closest('.hero')) return;
+    if (h.closest('.hero') || h.hasAttribute('data-dots')) return;
+    if (h.closest('#about')) {
+      // About: the heading fades up into place from below, quickly, so the section is readable as soon as it lands
+      gsap.from(h, { y: 44, autoAlpha: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: revealTrigger(h) });
+      return;
+    }
     const words = splits.get(h);
     gsap.from(words, {
       yPercent: 115, duration: 0.95, ease: 'power4.out', stagger: 0.06,
-      scrollTrigger: { trigger: h, start: 'top 88%', once: true },
+      scrollTrigger: revealTrigger(h),
     });
   });
 
   // Supporting copy + media
   gsap.utils.toArray('[data-reveal]:not(.shot):not(.wipe)').forEach((el) => {
-    gsap.from(el, { y: 32, autoAlpha: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
+    gsap.from(el, { y: 32, autoAlpha: 0, duration: el.closest('#about') ? 0.55 : 0.9, ease: 'power3.out', scrollTrigger: revealTrigger(el, 'top 90%') });
   });
   // Media frames wipe open from the top edge while the picture settles (explanatory, seen once)
   gsap.utils.toArray('.shot, .wipe').forEach((el) => {
     const img = el.querySelector('img');
-    const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+    const tl = gsap.timeline({ scrollTrigger: revealTrigger(el) });
     tl.from(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0);
     if (img) tl.from(img, { scale: 1.06, duration: 1.1, ease: 'power3.out' }, 0);
   });
@@ -226,7 +227,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     if (group.closest('.hero')) return;
     gsap.from(group.children, {
       y: 28, autoAlpha: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08,
-      scrollTrigger: { trigger: group, start: 'top 88%', once: true },
+      scrollTrigger: revealTrigger(group),
     });
   });
 

@@ -45,6 +45,10 @@ public/media/         photos and video thumbnail
 public/shots/         project screenshots (see public/shots/README.txt)
 ```
 
+## Scroll transitions
+
+Every section change has its own scrubbed transition (`src/transitions.js`, `src/transitions.css`). Each one is a tall block with a sticky stage that fades in over the last screen of the previous section and lands on the live next section (held in place while the stage gives way, so the two line up exactly). The eleven transitions: a camera aperture, index rows that become the real work list, dots that lift off the Work titles into a forecast fit and re-form the next heading, ruled ledger rows, a globe and flight route that hands its postmark to the page, a traffic light, a self-drawing chart that lifts away as the section rises, frosted glass that becomes the real cards, a career-timeline scrub, a barbell being loaded, and a rising heat front.
+
 ## Deploying
 
 Workflow: edit locally, push to `main` on GitHub, then pull in Replit (Git tab → Pull) and redeploy. The site is published from Replit; there is no GitHub Pages workflow.

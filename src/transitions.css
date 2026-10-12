@@ -1,0 +1,77 @@
+/* ============ Scroll transitions ============
+   Each seam is a tall block with a sticky 100vh stage. It overlaps the last screen of the previous section
+   (the stage fades in over it) and the next section sits underneath it, so the effect starts and ends on live content.
+   Scrolling through it scrubs a GSAP timeline (see transitions.js). */
+:root { --T: 150vh; }
+.seam { position: relative; z-index: 5; height: calc(100vh + var(--T)); margin-top: -100vh; pointer-events: none; }
+/* The next section sits underneath the stage (its first screen is what the transition lands on). */
+.seam + .scene { margin-top: -100vh; }
+.seam-stick { position: sticky; top: 0; height: 100vh; overflow: hidden; contain: layout paint; }
+.seam .layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.seam canvas.layer { pointer-events: none; }
+.seam-cap { position: absolute; left: var(--gut); right: var(--gut); bottom: 22px; z-index: 20; display: flex; justify-content: space-between; gap: 16px; font: 500 .72rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.seam-cap span:last-child { font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { .seam-cap { bottom: 16px; font-size: .64rem; } }
+
+/* 2 · About -> Work: the bars are the real index rows */
+.t2-band { position: absolute; left: 0; width: 100%; background: #0b0b0d; overflow: hidden; will-change: transform; }
+.t2-inner { position: absolute; top: 0; }
+.t2-inner .index-list { margin: 0; padding: 0; list-style: none; }
+
+/* 4 · Forecasting -> Ledger: ruled rows fill with paper */
+.t4-rows { position: absolute; inset: 0; }
+.t4-row { position: absolute; left: 0; right: 0; height: 40px; background: #dde7d8; border-bottom: 1px solid rgba(13,42,31,.08); box-sizing: border-box; transform-origin: 0 50%; will-change: transform; }
+.t4-fig { position: absolute; top: 0; height: 40px; display: flex; align-items: center; font: 500 .8rem/1 var(--mono); letter-spacing: .06em; color: #0d2a1f; white-space: nowrap; opacity: 0; }
+.t4-margin { position: absolute; top: 0; bottom: 0; left: clamp(6px, 2.2vw, 32px); width: 6px; border-inline: 1px solid rgba(178,70,58,.6); transform-origin: 50% 0; }
+
+/* 5 · Ledger -> Travel */
+.t5-cloud { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,255,255,.6), rgba(255,255,255,0)); will-change: transform; }
+.seam .postmark.t5-stamp { position: absolute; margin: 0; opacity: 0; will-change: transform; }
+
+/* 6 · Travel -> Drive Pro: learner plate */
+.t6-drop { position: absolute; left: 50%; top: 50%; width: 26vmin; height: 26vmin; margin: -13vmin 0 0 -13vmin; }
+.t6-card { position: absolute; inset: 0; }
+.t6-face { position: absolute; inset: 0; display: grid; place-items: center; background: #fafaf8; border-radius: 2vmin; box-shadow: 0 0 0 .8vmin #111, 0 3vmin 8vmin rgba(0,0,0,.4); }
+.t6-face b { font: 800 21vmin/1 var(--display); letter-spacing: -.04em; color: #d6201a; }
+
+/* 7 · Dashboard chart */
+.t7-light { position: absolute; inset: 0; background: #f4f1ea; clip-path: inset(0 100% 0 0); }
+.t7-scan { position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: #d6201a; }
+
+/* 8 · Dashboard -> Glass */
+.t8-orbs { position: absolute; inset: 0; background: #120a2e; opacity: 0; overflow: hidden; }
+.t8-blob { position: absolute; border-radius: 50%; will-change: transform; }
+.t8-pane { position: absolute; border-radius: 28px; background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.34); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 50px rgba(255,255,255,.07), 0 30px 80px rgba(8,2,30,.35); -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); will-change: transform; }
+.t8-lens { position: absolute; left: 0; top: 50%; width: 26vmin; height: 26vmin; margin-top: -13vmin; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); box-shadow: inset 0 0 30px rgba(255,255,255,.35), 0 0 40px rgba(142,240,208,.3); -webkit-backdrop-filter: blur(5px) saturate(2) brightness(1.15); backdrop-filter: blur(5px) saturate(2) brightness(1.15); }
+
+/* 9 · Side projects -> Experience: scrub a career timeline */
+.t9-rail { position: absolute; left: 50%; top: 0; bottom: 0; width: 0; will-change: transform; }
+.t9-line { position: absolute; left: -60vw; width: 520vw; top: 54%; height: 2px; background: rgba(255,255,255,.7); }
+.t9-tick { position: absolute; top: calc(54% - 6px); width: 1px; height: 12px; background: rgba(255,255,255,.5); }
+.t9-tick.maj { top: calc(54% - 14px); height: 28px; background: rgba(255,255,255,.85); }
+.t9-year { position: absolute; top: calc(54% + 26px); transform: translateX(-50%); font: 600 clamp(.8rem, 1.6vw, 1.1rem)/1 var(--mono); letter-spacing: .12em; color: rgba(255,255,255,.85); }
+.t9-node { position: absolute; top: 54%; width: 0; }
+.t9-node i { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: #ffe14d; box-shadow: 0 0 0 6px rgba(255,225,77,.25); }
+.t9-node div { position: absolute; left: 14px; width: max-content; max-width: 40vw; border-left: 2px solid #ffe14d; padding-left: 14px; color: #fff; }
+.t9-node.up div { bottom: 36px; }
+.t9-node.down div { top: 56px; }
+.t9-node b { display: block; font: 600 clamp(1.1rem, 2.6vw, 2rem)/1.1 var(--display); letter-spacing: -.02em; }
+.t9-node span { display: block; margin-top: 6px; font: 500 clamp(.66rem, 1.2vw, .8rem)/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.78); }
+.t9-head { position: absolute; left: 50%; top: calc(54% - 6.5vh); height: 13vh; width: 2px; margin-left: -1px; background: #ffe14d; border-radius: 1px; }
+.t9-head::before { content: ""; position: absolute; left: -5px; top: -7px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #ffe14d; }
+.t9-big { display: flex; justify-content: center; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-62%); text-align: center; font: 700 min(34vw, 42vh)/1 var(--display); letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,.22); }
+
+/* 10 · Skills -> Beyond: loading the bar */
+.t10-red { position: absolute; inset: 0; background: #5e0b10; transform-origin: 50% 50%; }
+.t10-roll { position: absolute; inset: 0; will-change: transform; transform-origin: 50% 50%; }
+.t10-rig { position: absolute; inset: 0; }
+.t10-floor { position: absolute; left: 6vw; right: 6vw; top: calc(50% + 24vmin); height: 6vmin; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.4), rgba(0,0,0,0)); }
+.t10-bar { position: absolute; left: 4vw; right: 4vw; top: 50%; height: 1.5vmin; margin-top: -.75vmin; background: linear-gradient(180deg, #e9ecf1, #8d95a3 55%, #5b6270); border-radius: 2px; }
+.t10-grip { position: absolute; left: 36vw; right: 36vw; top: 50%; height: 1.7vmin; margin-top: -.85vmin; background: repeating-linear-gradient(90deg, #aab1bd 0 2px, #6b7381 2px 4px); }
+.t10-plate { position: absolute; border-radius: .5vmin; box-shadow: inset 0 0 0 .25vmin rgba(0,0,0,.28), inset .3vmin 0 .5vmin rgba(255,255,255,.35); will-change: transform; }
+
+/* 11 · Beyond -> Contact: heat */
+.t11-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 55% at 50% 100%, #ffb25b 0, #ff7a45 38%, rgba(255,122,69,0) 72%); opacity: 0; transform-origin: 50% 100%; }
+.t11-fill { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.t9-big span { display: block; width: .6em; text-align: center; }
