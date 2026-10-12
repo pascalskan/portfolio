@@ -269,6 +269,17 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const text = fw.textContent;
     fw.textContent = '';
     const letters = [...text].map((ch) => { const sp = document.createElement('span'); if (ch === ' ') sp.className = 'sp'; sp.textContent = ch === ' ' ? '' : ch; fw.appendChild(sp); return sp; });
+    // size the wordmark so the whole name always fits its container (any screen width)
+    const fit = () => {
+      fw.style.fontSize = '100px';
+      const w = letters.reduce((sum, l) => sum + l.getBoundingClientRect().width, 0);
+      const cw = fw.clientWidth;
+      if (w > 0 && cw > 0) fw.style.fontSize = Math.floor((100 * cw / w) * 0.985 * 100) / 100 + 'px';
+    };
+    fit();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    window.addEventListener('resize', fit);
+    cleanups.push(() => window.removeEventListener('resize', fit));
     gsap.set(letters, { yPercent: 105 });
     const io = new IntersectionObserver((ents) => {
       if (!ents.some((e) => e.isIntersecting)) return;

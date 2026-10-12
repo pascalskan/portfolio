@@ -130,8 +130,9 @@
 .foot-cols h3 { margin-bottom: 14px; font: 500 .72rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mut); }
 .foot-cols li + li { margin-top: 8px; }
 .foot-cols a { display: inline-block; padding: 2px 0; color: var(--ink); transition: color .16s ease; }
-.foot-word { display: flex; justify-content: center; margin: clamp(24px, 4vw, 56px) 0 0; font-weight: 800; font-size: clamp(2.6rem, 11.2vw, 13rem); letter-spacing: -.06em; line-height: .86; white-space: nowrap; user-select: none; overflow: hidden; padding-bottom: .06em; }
+.foot-word { display: flex; justify-content: flex-start; margin: clamp(24px, 4vw, 56px) 0 0; font-weight: 800; font-size: clamp(2.6rem, 11.2vw, 13rem); letter-spacing: -.06em; line-height: .86; white-space: nowrap; user-select: none; overflow: hidden; padding-bottom: .06em; }
 .foot-word span { display: inline-block; color: #16191e; transition: color .25s ease, transform .3s var(--ease); }
+.foot-word span { flex: none; }
 .foot-word .sp { width: .28em; }
 .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0 22px; border-top: 1px solid var(--line); color: var(--mut); font-size: .85rem; }
 .foot-base p { margin: 0; }

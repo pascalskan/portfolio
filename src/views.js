@@ -122,7 +122,10 @@ export function initViews({ gsap, lenis, scrollTo }) {
       section = 'top';
       const home = id && id.path ? '/' : '#top';
       scroller.innerHTML = notFoundHTML({ home });
-      scroller.querySelector('.nf-path').textContent = id && id.path ? id.path : (location.hash || '#/');
+      let shown = id && id.path ? id.path : (location.hash || '#/');
+      const mm = shown.match(/^#\/missing\/(.*)$/);
+      if (mm) { try { shown = decodeURIComponent(mm[1]) || '/'; } catch (_) { shown = mm[1]; } }
+      scroller.querySelector('.nf-path').textContent = shown;
       document.title = 'Page not found | Pascal Skannavis';
     }
     scroller.scrollTop = 0;
@@ -216,6 +219,12 @@ export function initViews({ gsap, lenis, scrollTo }) {
     const m = h.match(/^#\/case\/([\w-]+)\/?$/);
     if (m && CASES[m[1]]) { open('case', m[1]); return; }
     if (h.startsWith('#/')) { open('404', null); return; }
+    // a plain hash that points at nothing on the page (e.g. #oasdasf) is a dead link too
+    if (h.length > 1) {
+      let id = h.slice(1);
+      try { id = decodeURIComponent(id); } catch (_) { /* keep raw */ }
+      if (!document.getElementById(id) && !document.getElementsByName(id).length) { open('404', null); return; }
+    }
     if (current) close(false);
   }
 
