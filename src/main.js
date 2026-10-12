@@ -268,11 +268,17 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const veil = box.querySelector('.embed-veil');
     if (veil) veil.tabIndex = on ? -1 : 0;
     const f = box.querySelector('iframe');
-    if (f) {
-      // keys pressed inside the dashboard never reach this document, so listen for Escape inside it too (same origin)
-      try { if (!f._esc) { f._esc = true; f.contentWindow.document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setLive(box, false); }); } } catch (_) { /* noop */ }
-      if (on) { try { f.focus({ preventScroll: true }); } catch (_) { /* noop */ } }
-    }
+    if (on && f) { try { f.focus({ preventScroll: true }); } catch (_) { /* noop */ } }
+  };
+  // keys pressed inside the dashboard never reach this document, so listen for Escape inside it too (same origin).
+  // Bound on every load of the frame (a lazy frame starts as about:blank and is replaced when it loads).
+  const bindEsc = (box) => {
+    const f = box.querySelector('iframe');
+    if (!f || f._escBound) return;
+    f._escBound = true;
+    const attach = () => { try { f.contentWindow.document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setLive(box, false); }); } catch (_) { /* noop */ } };
+    f.addEventListener('load', attach);
+    try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentWindow.location.href !== 'about:blank') attach(); } catch (_) { /* noop */ }
   };
   const onEmbedActivate = (e) => {
     const veil = e.target.closest && e.target.closest('.embed-veil');
@@ -286,7 +292,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   document.addEventListener('click', onEmbedActivate, true);
   document.addEventListener('keydown', onEmbedKey);
   const embedIO = new IntersectionObserver((ents) => ents.forEach((en) => { if (!en.isIntersecting) setLive(en.target, false); }), { threshold: 0 });
-  const watchEmbeds = () => document.querySelectorAll('.embed').forEach((el) => { if (!el._watched) { el._watched = true; embedIO.observe(el); } });
+  const watchEmbeds = () => document.querySelectorAll('.embed').forEach((el) => { if (!el._watched) { el._watched = true; embedIO.observe(el); bindEsc(el); } });
   watchEmbeds();
   new MutationObserver(watchEmbeds).observe(document.body, { childList: true, subtree: true });
   cleanups.push(() => { document.removeEventListener('pointerup', onEmbedActivate, true); document.removeEventListener('click', onEmbedActivate, true); document.removeEventListener('keydown', onEmbedKey); embedIO.disconnect(); });
