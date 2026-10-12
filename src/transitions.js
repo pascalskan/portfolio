@@ -51,50 +51,6 @@ function offsetBox(el, root) {
   return { x, y, w: el.offsetWidth, h: el.offsetHeight };
 }
 
-/* ---------------------------------------------------------------- 1 · Hero → About
-   A camera aperture opens from the dark onto the page: six blades, a viewfinder and a warm bloom. */
-function t1({ st, tl, ctx }) {
-  h('div', 't1-paper', st);
-  const bloom = h('div', 't1-bloom', st);
-  const bl = svg('<path class="dk" fill="#0a0b0d" fill-rule="evenodd"/><g class="sm" stroke="rgba(236,235,230,.22)" stroke-width="1.2"><line/><line/><line/><line/><line/><line/></g>', 'layer', st);
-  const dk = bl.querySelector('.dk'), sm = bl.querySelector('.sm'), lines = [...bl.querySelectorAll('line')];
-  const vf = svg(`<g fill="none" stroke="#1d1a14" stroke-width="1.6">
-      <path d="M12 20V12H20M88 12H80M88 12V20M12 80V88H20M88 80V88H80" transform="translate(0 0)"/>
-      <path class="cx" d="M47 50H53M50 47V53"/></g>
-      <rect class="fb" x="42" y="44" width="16" height="12" fill="none" stroke="#a63a15" stroke-width="1.8"/>`, 't1-vf', st, { viewBox: '0 0 100 100', preserveAspectRatio: 'none' });
-  const brackets = vf.querySelector('g'), fb = vf.querySelector('.fb');
-  const af = h('div', 't1-af', st, 'Focus · locked');
-  const draw = (p) => {
-    const W = st.clientWidth, H = st.clientHeight, cx = W / 2, cy = H / 2;
-    const e = clamp((p - 0.16) / 0.64), rmax = Math.hypot(W, H) * 0.64;
-    const R = e <= 0 ? 0 : lerp(2, rmax, Math.pow(eio(e), 1.5));
-    const th = lerp(-0.4, 0.8, eio(e));
-    bl.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    let d = `M0 0H${W}V${H}H0Z`;
-    const v = [];
-    for (let i = 0; i < 6; i++) v.push([cx + Math.cos(th + (i * Math.PI) / 3) * R, cy + Math.sin(th + (i * Math.PI) / 3) * R]);
-    if (R > 0) d += 'M' + v.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('L') + 'Z';
-    dk.setAttribute('d', d);
-    const L = Math.hypot(W, H);
-    sm.setAttribute('opacity', smooth(0.17, 0.4, p).toFixed(3)); // the blade lines fade in as the aperture starts to open, they don't pop on
-    lines.forEach((ln, i) => {
-      const a = v[i], b = v[(i + 1) % 6];
-      const dx = a[0] - b[0], dy = a[1] - b[1], n = Math.hypot(dx, dy) || 1;
-      ln.setAttribute('x1', a[0]); ln.setAttribute('y1', a[1]);
-      ln.setAttribute('x2', a[0] + (dx / n) * L); ln.setAttribute('y2', a[1] + (dy / n) * L);
-      ln.style.display = R > 0 ? '' : 'none';
-    });
-  };
-  ctx.update.push(draw);
-  draw(0);
-  tl.fromTo(bloom, { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.22).to(bloom, { opacity: 0, duration: 0.25 }, 0.72)
-    .fromTo(brackets, { opacity: 0 }, { opacity: 0.85, duration: 0.2 }, 0.28).to(brackets, { opacity: 0, duration: 0.18 }, 0.74)
-    .fromTo(fb, { opacity: 0, scale: 2, svgOrigin: '50 50' }, { opacity: 1, scale: 1, svgOrigin: '50 50', ease: 'power3.out', duration: 0.22 }, 0.34)
-    .to(fb, { opacity: 0, duration: 0.15 }, 0.74)
-    .fromTo(af, { opacity: 0 }, { opacity: 0.8, duration: 0.1 }, 0.5).to(af, { opacity: 0, duration: 0.14 }, 0.74);
-}
-
-
 /* ---------------------------------------------------------------- 2 · About → Work
    The bars are the real index rows: they slide in already carrying the project titles and land exactly where the page has them. */
 function t2({ st, tl, next, ctx, to }) {
@@ -521,7 +477,6 @@ function t11({ st, tl, ctx }) {
 /* ---------------------------------------------------------------- wiring */
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 160, land: 0.92, fade: 0.08, lead: [0.18, 0.14] },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },

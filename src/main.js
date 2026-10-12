@@ -210,12 +210,15 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     .from('.hero .stats > div', { y: 24, autoAlpha: 0, duration: 0.8, stagger: 0.08 }, 1.0)
     .from('.hero-canvas', { autoAlpha: 0, duration: 1.6, ease: 'power2.out' }, 0.2);
 
+  // Hero eases out as it scrolls away; About then fades up into place (no stage in between)
+  gsap.to('.hero-inner, .hero .stats', { opacity: 0, y: -40, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'bottom 85%', end: 'bottom 10%', scrub: true } });
+
   // Word-by-word heading reveals
   headings.forEach((h) => {
     if (h.closest('.hero') || h.hasAttribute('data-dots')) return;
     if (h.closest('#about')) {
       // About: the heading fades up into place from below, quickly, so the section is readable as soon as it lands
-      gsap.from(h, { y: 36, autoAlpha: 0, duration: 0.5, ease: 'power3.out', scrollTrigger: revealTrigger(h) });
+      gsap.from(h, { y: 44, autoAlpha: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: revealTrigger(h) });
       return;
     }
     const words = splits.get(h);
