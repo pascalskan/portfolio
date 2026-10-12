@@ -496,7 +496,7 @@ const DEFS = [
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },
-  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
+  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.94, fade: 0.012 },
   { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.6, fade: 0.36 },
   { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.1, 0.12] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
