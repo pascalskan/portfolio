@@ -213,6 +213,11 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
   // Word-by-word heading reveals
   headings.forEach((h) => {
     if (h.closest('.hero') || h.hasAttribute('data-dots')) return;
+    if (h.closest('#about')) {
+      // About: the heading fades up into place from below, quickly, so the section is readable as soon as it lands
+      gsap.from(h, { y: 36, autoAlpha: 0, duration: 0.5, ease: 'power3.out', scrollTrigger: revealTrigger(h) });
+      return;
+    }
     const words = splits.get(h);
     gsap.from(words, {
       yPercent: 115, duration: 0.95, ease: 'power4.out', stagger: 0.06,
@@ -222,7 +227,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
 
   // Supporting copy + media
   gsap.utils.toArray('[data-reveal]:not(.shot):not(.wipe)').forEach((el) => {
-    gsap.from(el, { y: 32, autoAlpha: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: revealTrigger(el, 'top 90%') });
+    gsap.from(el, { y: 32, autoAlpha: 0, duration: el.closest('#about') ? 0.55 : 0.9, ease: 'power3.out', scrollTrigger: revealTrigger(el, 'top 90%') });
   });
   // Media frames wipe open from the top edge while the picture settles (explanatory, seen once)
   gsap.utils.toArray('.shot, .wipe').forEach((el) => {
