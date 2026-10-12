@@ -535,7 +535,7 @@ const DEFS = [
   { before: '#about', fn: t1, label: 'Opening → About', ink: ['#ece4d3', '#1d1a14'], T: 160, land: 0.92, fade: 0.08, lead: [0.1, 0.14] },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 170, land: 0.9, fade: 0.1 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, land: 0.9, fade: 0.1 },
-  { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 200, land: 0.9, fade: 0.1 },
+  { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 220, land: 0.74, fade: 0.23 },
   { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 260, land: 0.93, fade: 0.07 },
   { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 200, land: 0.9, fade: 0.1 },
   { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.02, 0.12] },
