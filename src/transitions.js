@@ -55,8 +55,7 @@ function offsetBox(el, root) {
 }
 
 /* ---------------------------------------------------------------- 1 · Hero → About
-   A sheet of paper is torn up the page from below, edge glowing like a fuse, and the three words of the About section (plan,
-   evidence, delivery) are pencilled on it as it passes; the sheet is the About page's own paper, so the hand-over is exact. */
+   A sheet of paper is torn up the page from below, its edge glowing like a fuse; the sheet is the About page's own paper, so the hand-over is exact. */
 function t1({ st, tl, ctx, to }) {
   const rng = rngFrom(17);
   const NP = 101, jag = Array.from({ length: NP }, () => rng());
@@ -81,12 +80,6 @@ function t1({ st, tl, ctx, to }) {
   ctx.redraw = () => edge(tl.progress());
   ctx.update.push(edge);
   edge(0);
-  const notes = ['01 · PLAN', '02 · EVIDENCE', '03 · DELIVERY'].map((t, i) => {
-    const n = h('div', 't1-note', st, t);
-    n.style.cssText = `left:${8 + i * 6}vw;top:${34 + i * 15}vh`;
-    tl.fromTo(n, { opacity: 0, x: -14 }, { opacity: 1, x: 0, ease: 'power2.out', duration: 0.12 }, 0.5 + i * 0.07).to(n, { opacity: 0, duration: 0.1 }, 0.86);
-    return n;
-  });
   tl.set(st, { backgroundColor: to.to }, 0.72);
   return { ownsBg: true };
 }
