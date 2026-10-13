@@ -170,9 +170,24 @@ export function initViews({ gsap, lenis, scrollTo }) {
     };
     const close = () => { if (dlg.open) dlg.close(); };
     const onDlgClick = (e) => { if (e.target === dlg || e.target.closest('.v-visit-x') || e.target.closest('.v-visit-go')) close(); };
+    /* the saved copy only has its desktop header at 1200px and up, so on narrower boxes it is drawn at that width and scaled down to fit */
+    const minW = c && c.embed && c.embed.minW;
+    const fit = () => {
+      if (!minW) return;
+      const w = box.clientWidth, s = w / minW;
+      if (w >= 700 && s < 1) {
+        const hh = box.clientHeight - 28;
+        Object.assign(frame.style, { width: minW + 'px', height: hh / s + 'px', right: 'auto', bottom: 'auto', transform: `scale(${s})`, transformOrigin: '0 0' });
+      } else {
+        ['width', 'height', 'right', 'bottom', 'transform', 'transformOrigin'].forEach((k) => { frame.style[k] = ''; });
+      }
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
     window.addEventListener('message', onMsg);
     dlg.addEventListener('click', onDlgClick);
-    siteCleanup = () => { window.removeEventListener('message', onMsg); dlg.removeEventListener('click', onDlgClick); };
+    siteCleanup = () => { ro.disconnect(); window.removeEventListener('message', onMsg); dlg.removeEventListener('click', onDlgClick); };
   }
 
   let galCleanup = null;

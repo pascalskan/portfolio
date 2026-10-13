@@ -88,7 +88,7 @@ export const CASES = {
       ] },
     ],
     shot: { mobile: 'shots/twb-mobile.webp', src: 'shots/twb.webp', alt: 'Screenshot of the Travel Without Borders website' },
-    embed: { kind: 'site', src: 'embeds/twb/index.html', host: 'travelwithoutborders.co.uk', live: 'https://travelwithoutborders.co.uk/', title: 'Travel Without Borders home page: a saved copy that scrolls and responds like the live site', label: 'Home page · scroll and click around', note: 'Some parts of the page have been removed from this preview. For the full page, please visit the live site.' },
+    embed: { kind: 'site', src: 'embeds/twb/index.html', host: 'travelwithoutborders.co.uk', minW: 1240, live: 'https://travelwithoutborders.co.uk/', title: 'Travel Without Borders home page: a saved copy that scrolls and responds like the live site', label: 'Home page · scroll and click around', note: 'Some parts of the page have been removed from this preview. For the full page, please visit the live site.' },
     stack: ['PHP', 'WordPress', 'CSS / JS', 'GA4'],
     links: [{ label: 'Visit the live site', href: 'https://travelwithoutborders.co.uk' }],
   },
