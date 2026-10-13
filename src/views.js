@@ -25,7 +25,8 @@ function caseHTML(id) {
     </div>
     <div class="v-gal-ctl"><div class="v-gal-dots" role="group" aria-label="Choose a screenshot">${c.gallery.map((g, k) => `<button type="button" data-i="${k}" aria-label="Screenshot ${k + 1}"${k ? '' : ' aria-current="true"'}></button>`).join('')}</div><span class="v-gal-n" aria-live="polite">1 / ${n}</span></div>
   </section>` : '';
-  const embed = c.embed ? `<figure class="v-shot embed v-rise"><div class="shot-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span class="embed-title">Live dashboard · fully interactive</span><button class="embed-exit" type="button">Done</button><a class="embed-open" href="${esc(c.embed.src)}" target="_blank" rel="noopener">Open full screen${ARROW_UR}</a></div><iframe tabindex="-1" src="${esc(c.embed.src)}" title="${esc(c.embed.title)}" loading="lazy"></iframe><button class="embed-veil" type="button" aria-label="Activate the interactive dashboard"><span>Click to explore</span></button></figure>` : '';
+  const isSite = !!(c.embed && c.embed.kind === 'site');
+  const embed = c.embed ? `<figure class="v-shot embed v-rise${isSite ? ' embed-site' : ''}"><div class="shot-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span class="embed-title">${esc(isSite ? `${c.embed.host} · ${c.embed.label}` : 'Live dashboard · fully interactive')}</span><button class="embed-exit" type="button">Done</button><a class="embed-open" href="${esc(isSite ? c.embed.live : c.embed.src)}" target="_blank" rel="noopener">${isSite ? 'Visit live site' : 'Open full screen'}${ARROW_UR}</a></div><iframe tabindex="-1" src="${esc(c.embed.src)}" title="${esc(c.embed.title)}" loading="lazy"></iframe><button class="embed-veil" type="button" aria-label="${isSite ? 'Activate the page preview so you can scroll and click it' : 'Activate the interactive dashboard'}"><span>Click to explore</span></button>${isSite ? `<dialog class="v-visit" aria-labelledby="v-visit-t"><h3 id="v-visit-t">That link leaves this preview</h3><p class="v-visit-p">This is a saved copy of the ${esc(c.embed.host)} home page, so only the home page is in here.<span class="v-visit-l"></span></p><div class="v-visit-a"><a class="v-visit-go" href="${esc(c.embed.live)}" target="_blank" rel="noopener">Visit ${esc(c.embed.host)}${ARROW_UR}</a><button type="button" class="v-visit-x">Keep exploring</button></div></dialog>` : ''}</figure>` : '';
   const sections = c.sections.map((s) => `<section class="v-sec v-rise"><h2>${esc(s.h)}</h2><ul>${s.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>`).join('');
   const links = c.links.map((l) => `<a class="v-link" href="${esc(l.href)}" rel="noopener noreferrer">${esc(l.label)}${ARROW_UR}</a>`).join('');
   return `
@@ -41,7 +42,7 @@ function caseHTML(id) {
     ${embed}
     ${gallery}
     <div class="v-body">
-      <div class="v-main">${flow}${bars}${sections}${n ? '' : shot}</div>
+      <div class="v-main">${flow}${bars}${sections}${n || c.embed ? '' : shot}</div>
       <aside class="v-side v-rise" aria-label="Details">
         <h3>Built with</h3>
         <ul class="v-tags">${c.stack.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
@@ -129,6 +130,7 @@ export function initViews({ gsap, lenis, scrollTo }) {
       document.title = `${c.title} | Pascal Skannavis`;
       // a missing screenshot should leave no empty frame behind
       initGallery();
+      initSiteEmbed();
       scroller.querySelectorAll('.v-shot img').forEach((img) => img.addEventListener('error', () => img.closest('.v-shot').remove(), { once: true }));
     } else {
       setTheme({ bg: '#0a0b0d', ink: '#ecebe6', mut: '#8b8f97', acc: '#ff7a45', line: '#22252b', style: 'nf' });
@@ -142,6 +144,33 @@ export function initViews({ gsap, lenis, scrollTo }) {
       document.title = 'Page not found | Pascal Skannavis';
     }
     scroller.scrollTop = 0;
+  }
+
+  let siteCleanup = null;
+  function initSiteEmbed() {
+    if (siteCleanup) { siteCleanup(); siteCleanup = null; }
+    const box = scroller.querySelector('.embed-site');
+    if (!box) return;
+    const frame = box.querySelector('iframe');
+    const dlg = box.querySelector('.v-visit');
+    const go = box.querySelector('.v-visit-go');
+    const lab = box.querySelector('.v-visit-l');
+    const c = CASES[(location.hash.match(/#\/case\/([\w-]+)/) || [])[1]];
+    const live = c && c.embed ? c.embed.live : go.href;
+    const onMsg = (e) => {
+      if (e.source !== frame.contentWindow || !e.data || e.data.type !== 'site-link') return;
+      let href = live;
+      try { const u = new URL(e.data.href, live); const h = new URL(live).hostname; if (u.protocol === 'https:' && (u.hostname === h || u.hostname.endsWith('.' + h))) href = u.href; } catch (_) { /* keep the home page */ }
+      go.href = href;
+      const label = String(e.data.label || '').trim();
+      lab.textContent = label ? ` “${label.slice(0, 60)}” lives on the real site.` : ' That part lives on the real site.';
+      if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
+    };
+    const close = () => { if (dlg.open) dlg.close(); };
+    const onDlgClick = (e) => { if (e.target === dlg || e.target.closest('.v-visit-x') || e.target.closest('.v-visit-go')) close(); };
+    window.addEventListener('message', onMsg);
+    dlg.addEventListener('click', onDlgClick);
+    siteCleanup = () => { window.removeEventListener('message', onMsg); dlg.removeEventListener('click', onDlgClick); };
   }
 
   let galCleanup = null;
