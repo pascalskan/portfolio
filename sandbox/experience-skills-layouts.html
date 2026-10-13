@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Layout sandbox · Experience &amp; Skills</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--sans:'Bricolage Grotesque',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;--serif:'Instrument Serif',Georgia,serif;--gut:clamp(20px,5vw,72px)}
+*{box-sizing:border-box}html,body{margin:0}body{font-family:var(--sans);-webkit-font-smoothing:antialiased}
+#bar{position:fixed;z-index:100;top:0;left:0;right:0;display:flex;gap:12px;align-items:center;padding:10px 14px;background:rgba(10,11,13,.92);color:#fff;backdrop-filter:blur(8px);font:500 12px var(--mono)}
+#bar select{font:inherit;background:#1b1d22;color:#fff;border:1px solid #3a3d45;border-radius:8px;padding:8px 10px;max-width:70vw}
+#root{padding-top:48px}
+.wrap{padding-inline:var(--gut);max-width:1500px;margin-inline:auto}
+h2,h3,p,ul,ol{margin:0}ul,ol{padding:0;list-style:none}
+.mono{font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;font-size:.72rem}
+
+/* ============ 1 · RAIL (cobalt) ============ */
+.L1{background:#1636e8;color:#fff;--acc:#ffe14d;--mut:#cdd6ff;--line:rgba(255,255,255,.3)}
+.L1 .sec{padding:clamp(72px,10vw,150px) 0}
+.L1 h2{font-weight:800;letter-spacing:-.06em;font-size:clamp(3rem,9vw,8rem);line-height:.85;margin-bottom:clamp(36px,5vw,72px)}
+.L1 .sk h2{color:var(--acc);text-transform:uppercase}
+.L1 .rail{position:relative;margin-left:clamp(0px,2vw,24px);padding-left:clamp(28px,5vw,72px);border-left:2px solid var(--line)}
+.L1 .rail article{position:relative;padding-bottom:clamp(40px,6vw,80px);display:grid;grid-template-columns:minmax(120px,.28fr) 1fr;gap:12px clamp(20px,4vw,64px)}
+.L1 .rail article::before{content:"";position:absolute;left:calc(-1*clamp(28px,5vw,72px) - 8px);top:.5em;width:14px;height:14px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 6px #1636e8}
+.L1 .when{font:700 clamp(1.4rem,3vw,2.4rem)/1 var(--sans);letter-spacing:-.04em;color:var(--acc)}
+.L1 h3{font-size:clamp(1.3rem,2.4vw,2rem);letter-spacing:-.03em;line-height:1.05;margin-bottom:8px}
+.L1 .org{color:var(--mut);font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.L1 article p:last-child{max-width:62ch;color:#e8ecff;line-height:1.55}
+.L1 .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.L1 .card{border:1.5px solid var(--line);border-radius:18px;padding:clamp(20px,2.4vw,32px)}
+.L1 .card h3{font:700 .8rem var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:16px}
+.L1 .card ul{display:flex;flex-wrap:wrap;gap:8px}.L1 .card li{padding:7px 13px;border-radius:99px;background:rgba(255,255,255,.12);font-size:.92rem}
+@media(max-width:760px){.L1 .rail article{grid-template-columns:1fr}.L1 .cards{grid-template-columns:1fr}}
+
+/* ============ 2 · BENTO (dark ink, colour tiles) ============ */
+.L2{background:#0b0c10;color:#f3f1ea;--r:22px}
+.L2 .sec{padding:clamp(64px,9vw,130px) 0}
+.L2 .head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:28px}
+.L2 h2{font-weight:800;letter-spacing:-.06em;font-size:clamp(2.6rem,7vw,6rem);line-height:.9}
+.L2 .head span{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#8d9099}
+.L2 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+.L2 .t{border-radius:var(--r);padding:clamp(20px,2.4vw,34px);position:relative;overflow:hidden;min-height:200px;display:flex;flex-direction:column;justify-content:space-between}
+.L2 .t .y{font:700 clamp(2.6rem,6vw,5rem)/.9 var(--sans);letter-spacing:-.06em}
+.L2 .t h3{font-size:clamp(1.2rem,2vw,1.7rem);letter-spacing:-.03em;line-height:1.08}
+.L2 .t .o{font:500 .72rem var(--mono);letter-spacing:.1em;text-transform:uppercase;opacity:.75;margin-top:8px}
+.L2 .t p{line-height:1.5;opacity:.88;margin-top:12px;font-size:.95rem}
+.L2 .a{grid-column:span 4;background:#ffe14d;color:#10131f}.L2 .b{grid-column:span 2;background:#1636e8}.L2 .c{grid-column:span 3;background:#f3f1ea;color:#10131f}.L2 .d{grid-column:span 3;background:#ff7a45;color:#150a05}
+.L2 .s{grid-column:span 2;background:#15171e;border:1px solid #262a35;min-height:260px;justify-content:flex-start;gap:16px}
+.L2 .s:nth-child(1){grid-column:span 3}.L2 .s:nth-child(2){grid-column:span 3;background:#1636e8;border:0}
+.L2 .s h3{font:700 .75rem var(--mono);letter-spacing:.16em;text-transform:uppercase;opacity:.7}
+.L2 .s .n{font:800 clamp(2.4rem,5vw,4rem)/.9 var(--sans);letter-spacing:-.06em}
+.L2 .s ul{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}.L2 .s li{font-size:.85rem;padding:5px 11px;border-radius:99px;border:1px solid rgba(255,255,255,.22)}
+@media(max-width:860px){.L2 .bento>*{grid-column:span 6!important}}
+
+/* ============ 3 · EDITORIAL (sticky giant word, big type lists) ============ */
+.L3{background:#f2eee4;color:#16130d;--acc:#1636e8}
+.L3 .sec{display:grid;grid-template-columns:minmax(0,.4fr) minmax(0,1fr);gap:clamp(24px,5vw,80px);padding:clamp(72px,10vw,150px) var(--gut);max-width:1500px;margin-inline:auto}
+.L3 .word{position:sticky;top:72px;align-self:start;min-width:0}
+.L3 .word h2{font:400 clamp(2.6rem,5vw,5.2rem)/.85 var(--serif);letter-spacing:-.04em;font-style:italic;color:var(--acc)}
+.L3 .word p{margin-top:20px;font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#6b6556}
+.L3 .item{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:28px 0;border-top:1.5px solid #16130d}
+.L3 .item:last-child{border-bottom:1.5px solid #16130d}
+.L3 .item .when{font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#6b6556;padding-top:6px}
+.L3 .sec>div{min-width:0}.L3 .sk .big{overflow-wrap:break-word}.L3 .item h3{font:400 clamp(1.8rem,3.4vw,3rem)/1 var(--serif);letter-spacing:-.02em}
+.L3 .item .org{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin:10px 0}
+.L3 .item p:last-child{max-width:58ch;line-height:1.6;color:#3c372c}
+.L3 .sk .row{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:22px 0;border-top:1.5px solid #16130d}
+.L3 .sk .row:last-child{border-bottom:1.5px solid #16130d}
+.L3 .sk h3{font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#6b6556;padding-top:10px}
+.L3 .sk .big{font:400 clamp(1.6rem,3vw,2.6rem)/1.15 var(--serif);letter-spacing:-.01em}
+.L3 .sk .big i{color:var(--acc);font-style:normal;padding:0 .35em}
+@media(max-width:860px){.L3 .sec{grid-template-columns:1fr}.L3 .word{position:static}.L3 .item,.L3 .sk .row{grid-template-columns:1fr;gap:8px}}
+
+/* ============ 4 · CAREER TRACK (gantt bars + skill columns) ============ */
+.L4{background:#0f1a3a;color:#eef2ff;--acc:#ffe14d;--b:#3b5bff}
+.L4 .sec{padding:clamp(72px,10vw,140px) 0}
+.L4 h2{font-weight:800;letter-spacing:-.06em;font-size:clamp(2.6rem,7vw,6rem);line-height:.9;margin-bottom:12px}
+.L4 .lede{color:#9fb0e6;max-width:56ch;margin-bottom:40px;line-height:1.5}
+.L4 .track{position:relative;padding:34px 0 8px;border-top:1px solid rgba(255,255,255,.18)}
+.L4 .axis{display:grid;grid-template-columns:repeat(6,1fr);font:500 .72rem var(--mono);letter-spacing:.1em;color:#7f90c8;position:absolute;top:8px;left:0;right:0}
+.L4 .axis span{border-left:1px solid rgba(255,255,255,.12);padding-left:6px;height:calc(100% + 0px)}
+.L4 .bars{position:relative;display:grid;gap:14px;padding-top:6px}
+.L4 .bar{position:relative;height:auto;min-height:64px;border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;justify-content:center}
+.L4 .bar b{font-size:1.05rem;letter-spacing:-.02em}.L4 .bar small{font:500 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-top:4px}
+.L4 .bar.edu{background:linear-gradient(90deg,transparent,#3b5bff 18%);border-radius:0 14px 14px 0}
+.L4 .bar.work{background:#2b44c9}.L4 .bar.sup{background:#ffe14d;color:#10131f}.L4 .bar.free{background:#ff7a45;color:#150a05}
+.L4 .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:36px 0 clamp(56px,8vw,110px)}
+.L4 .notes div{border-left:2px solid var(--acc);padding-left:16px;line-height:1.5;color:#c5d0f5;font-size:.95rem}.L4 .notes h3{color:#fff;font-size:1.1rem;margin-bottom:6px;letter-spacing:-.02em}
+.L4 .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid rgba(255,255,255,.18)}
+.L4 .col{padding:22px 20px 22px 0}.L4 .col+.col{padding-left:20px;border-left:1px solid rgba(255,255,255,.12)}
+.L4 .col h3{font:700 .75rem var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--acc);margin-bottom:14px}
+.L4 .col li{padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.14);font-size:.95rem}
+@media(max-width:860px){.L4 .notes{grid-template-columns:1fr}.L4 .cols{grid-template-columns:1fr 1fr}.L4 .col:nth-child(3){padding-left:0;border-left:0}.L4 .bar{margin-left:0!important;width:auto!important}.L4 .axis{display:none}}
+
+/* ============ 5 · FILTER (interactive skills, résumé list) ============ */
+.L5{background:#eaf0ff;color:#0d1330;--acc:#1636e8}
+.L5 .sec{padding:clamp(72px,10vw,140px) 0}
+.L5 h2{font-weight:800;letter-spacing:-.06em;font-size:clamp(2.6rem,7vw,6rem);line-height:.9;margin-bottom:32px;color:var(--acc)}
+.L5 .list{display:grid;gap:0;border-top:2px solid #0d1330}
+.L5 .row{display:grid;grid-template-columns:minmax(120px,.22fr) minmax(0,1fr) auto;gap:12px 28px;align-items:baseline;padding:24px 4px;border-bottom:1px solid rgba(13,19,48,.25);transition:background .2s}
+@media(hover:hover){.L5 .row:hover{background:rgba(22,54,232,.07)}}
+.L5 .row .when{font:700 1.1rem var(--sans);letter-spacing:-.02em;color:var(--acc)}
+.L5 .row h3{font-size:clamp(1.2rem,2.2vw,1.7rem);letter-spacing:-.03em;line-height:1.1}.L5 .row .org{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#4a557f;margin-top:6px}
+.L5 .row .d{grid-column:2;max-width:64ch;line-height:1.55;color:#2b3560;display:none;margin-top:6px}.L5 .row.open .d{display:block}
+.L5 .row button{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;border:1.5px solid #0d1330;display:grid;place-items:center;font:500 18px var(--mono);transition:transform .25s}.L5 .row.open button{transform:rotate(45deg);background:#0d1330;color:#eaf0ff}
+.L5 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:48px 0 20px}
+.L5 .chips button{all:unset;cursor:pointer;padding:9px 16px;border-radius:99px;border:1.5px solid #0d1330;font:500 .78rem var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.L5 .chips button[aria-pressed=true]{background:#0d1330;color:#eaf0ff}
+.L5 .cloud{display:flex;flex-wrap:wrap;gap:10px;min-height:150px}
+.L5 .cloud span{padding:10px 18px;border-radius:99px;background:#fff;border:1.5px solid rgba(13,19,48,.2);font-size:clamp(.95rem,1.5vw,1.2rem);letter-spacing:-.01em;transition:opacity .25s,transform .25s}
+.L5 .cloud span.off{opacity:.18;transform:scale(.96)}
+@media(max-width:760px){.L5 .row{grid-template-columns:1fr auto}.L5 .row .d{grid-column:1/-1}.L5 .row .when{grid-column:1}}
+</style></head><body>
+<div id="bar"><label for="sel">Layout</label>
+<select id="sel">
+ <option value="1">1 · Rail: timeline with dots + skill cards (cobalt)</option>
+ <option value="2">2 · Bento: coloured tiles (dark)</option>
+ <option value="3">3 · Editorial: serif, sticky headings (paper)</option>
+ <option value="4">4 · Career track: bars on a year axis + skill columns</option>
+ <option value="5">5 · Interactive: expandable roles + skill filter (light)</option>
+</select></div>
+<div id="root"></div>
+<script>
+const EXP=[
+ {w:'2026 – Present',t:'Freelance Web Developer',o:'Travel Without Borders · M.G. Drive Pro',d:'Front-end rebuild of a live production WordPress site as an upgrade-safe child theme, and a full-stack build for a local driving instructor, both with measurement, accessibility and documentation built in.'},
+ {w:'2021 – Present',t:'Site Worker, then Site Supervisor, Residential Renovation',o:'Regular site worker 2021 – 2025 · Site Supervisor since 2025',d:'Worked on the build as a regular site worker from 2021 and was given the supervisor role in 2025. Since then I have coordinated contractors, scheduling, procurement and on-site delivery across concurrent workstreams.'},
+ {w:'Graduated 2026',t:'BSc Computer Science, Newcastle University',o:'',d:'Modules: Machine Learning, Data Science, Software Engineering, Database Systems, Algorithms & Data Structures, Software Architecture, Data Visualisation, AI Implementation.'}];
+const SK=[
+ ['Languages',['Python','TypeScript / JavaScript','SQL','PHP','Java','HTML / CSS']],
+ ['Data & ML',['pandas, NumPy, SciPy','scikit-learn','Time-series forecasting','Walk-forward validation','Feature engineering','Statistical testing','D3']],
+ ['Engineering',['React, Vite, Tailwind','FastAPI, Express','PostgreSQL','Git, GitHub Actions','pytest, Playwright','Accessibility (axe, WCAG AA)']],
+ ['Product & systems',['Workflow design','Role-based access','Audit logging','Technical writing','Release and handover docs']]];
+const esc=s=>s.replace(/&/g,'&amp;');
+const li=a=>a.map(x=>`<li>${esc(x)}</li>`).join('');
+const R={
+1:()=>`<div class="L1"><section class="sec"><div class="wrap"><h2>Experience</h2><div class="rail">${EXP.map(e=>`<article><p class="when">${e.w}</p><div><h3>${esc(e.t)}</h3>${e.o?`<p class="org">${esc(e.o)}</p>`:''}<p>${esc(e.d)}</p></div></article>`).join('')}</div></div></section>
+<section class="sec sk"><div class="wrap"><h2>Skills</h2><div class="cards">${SK.map(([h,a])=>`<div class="card"><h3>${esc(h)}</h3><ul>${li(a)}</ul></div>`).join('')}</div></div></section></div>`,
+2:()=>`<div class="L2"><section class="sec"><div class="wrap"><div class="head"><h2>Experience</h2><span>2021 → now</span></div><div class="bento">
+ <div class="t a"><div class="y">2026 →</div><div><h3>${esc(EXP[0].t)}</h3><p class="o">${esc(EXP[0].o)}</p><p>${esc(EXP[0].d)}</p></div></div>
+ <div class="t b"><div class="y">BSc</div><div><h3>${esc(EXP[2].t)}</h3><p class="o">Graduated 2026</p></div></div>
+ <div class="t c"><div class="y">2021 →</div><div><h3>Site Worker</h3><p class="o">Residential renovation · 2021 – 2025</p><p>Worked on the build as a regular site worker.</p></div></div>
+ <div class="t d"><div class="y">2025 →</div><div><h3>Site Supervisor</h3><p class="o">Residential renovation · since 2025</p><p>Coordinating contractors, scheduling, procurement and on-site delivery across concurrent workstreams.</p></div></div>
+</div></div></section>
+<section class="sec" style="padding-top:0"><div class="wrap"><div class="head"><h2>Skills</h2><span>4 areas</span></div><div class="bento">${SK.map(([h,a],i)=>`<div class="t s"><h3>${esc(h)}</h3><div class="n">${String(a.length).padStart(2,'0')}</div><ul>${li(a)}</ul></div>`).join('')}</div></div></section></div>`,
+3:()=>`<div class="L3"><section class="sec"><div class="word"><h2>Experience</h2><p>Work · Study</p></div><div>${EXP.map(e=>`<div class="item"><p class="when">${e.w}</p><div><h3>${esc(e.t)}</h3>${e.o?`<p class="org">${esc(e.o)}</p>`:''}<p>${esc(e.d)}</p></div></div>`).join('')}</div></section>
+<section class="sec sk"><div class="word"><h2>Skills</h2><p>What I work with</p></div><div>${SK.map(([h,a])=>`<div class="row"><h3>${esc(h)}</h3><p class="big">${a.map(esc).join('<i>/</i>')}</p></div>`).join('')}</div></section></div>`,
+4:()=>`<div class="L4"><section class="sec"><div class="wrap"><h2>Experience</h2><p class="lede">Five years on a live construction site, a computer science degree, and a first year of freelance engineering, all feeding the same habits: plan it, check it, hand it over.</p>
+<div class="track"><div class="axis"><span>2021</span><span>2022</span><span>2023</span><span>2024</span><span>2025</span><span>2026</span></div><div class="bars">
+ <div class="bar work" style="margin-left:0;width:75%"><b>Site worker, residential renovation</b><small>2021 – 2025</small></div>
+ <div class="bar sup" style="margin-left:66.6%;width:33.4%"><b>Site Supervisor</b><small>2025 – now</small></div>
+ <div class="bar edu" style="margin-left:0;width:84%"><b>BSc Computer Science · Newcastle</b><small>Graduated 2026</small></div>
+ <div class="bar free" style="margin-left:83.3%;width:16.7%"><b>Freelance web</b><small>2026 – now</small></div></div></div>
+<div class="notes">${EXP.map(e=>`<div><h3>${esc(e.t)}</h3>${esc(e.d)}</div>`).join('')}</div>
+<h2>Skills</h2><div class="cols">${SK.map(([h,a])=>`<div class="col"><h3>${esc(h)}</h3><ul>${li(a)}</ul></div>`).join('')}</div></div></section></div>`,
+5:()=>`<div class="L5"><section class="sec"><div class="wrap"><h2>Experience</h2><div class="list">${EXP.map((e,i)=>`<div class="row${i==0?' open':''}"><p class="when">${e.w}</p><div><h3>${esc(e.t)}</h3>${e.o?`<p class="org">${esc(e.o)}</p>`:''}</div><button aria-label="Toggle details">+</button><p class="d">${esc(e.d)}</p></div>`).join('')}</div>
+<h2 style="margin-top:clamp(64px,9vw,120px)">Skills</h2><div class="chips" role="group" aria-label="Filter skills"><button aria-pressed="true" data-f="all">All</button>${SK.map(([h],i)=>`<button aria-pressed="false" data-f="${i}">${esc(h)}</button>`).join('')}</div>
+<div class="cloud">${SK.flatMap(([h,a],i)=>a.map(x=>`<span data-g="${i}">${esc(x)}</span>`)).join('')}</div></div></section></div>`};
+const root=document.getElementById('root'),sel=document.getElementById('sel');
+function load(){root.innerHTML=R[sel.value]();document.body.style.background={1:'#1636e8',2:'#0b0c10',3:'#f2eee4',4:'#0f1a3a',5:'#eaf0ff'}[sel.value];scrollTo(0,0)}
+sel.onchange=load;
+root.addEventListener('click',e=>{const r=e.target.closest('.L5 .row');if(r&&e.target.closest('button'))r.classList.toggle('open');
+ const b=e.target.closest('.L5 .chips button');if(b){document.querySelectorAll('.L5 .chips button').forEach(x=>x.setAttribute('aria-pressed',x===b));const f=b.dataset.f;document.querySelectorAll('.L5 .cloud span').forEach(s=>s.classList.toggle('off',f!=='all'&&s.dataset.g!==f))}});
+load();
+</script></body></html>
