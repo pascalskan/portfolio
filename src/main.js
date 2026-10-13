@@ -182,7 +182,11 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const target = hash === '#top' ? 0 : document.querySelector(hash);
     if (target === null) return;
     e.preventDefault();
-    lenis.scrollTo(target, { offset: 0, duration: 1.4 });
+    // A section that follows a transition is landed on just past the end of that transition (not on the section's own top, which sits
+    // a little short of it), so the stage has fully handed over and its text cannot show through on top of the live section.
+    const seam = target !== 0 && target.previousElementSibling && target.previousElementSibling.classList.contains('seam') ? target.previousElementSibling : null;
+    const y = seam ? Math.round(seam.getBoundingClientRect().bottom + window.scrollY - window.innerHeight + Math.max(32, window.innerHeight * 0.05)) : target;
+    lenis.scrollTo(y, { offset: 0, duration: 1.4 });
     if (hash !== '#top') history.replaceState(null, '', hash);
   };
   document.addEventListener('click', onAnchor);

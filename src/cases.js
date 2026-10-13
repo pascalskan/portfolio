@@ -53,7 +53,7 @@ export const CASES = {
       { n: '1,961 → 399 KB', l: 'entry bundle with route-level code splitting' },
       { n: '4', l: 'governing rules: Approval, Audit, Job Attribution, Financial Integrity' },
     ],
-    embed: { kind: 'app', src: 'https://the-ledger-pascalskan.replit.app/auth', host: 'the-ledger-pascalskan.replit.app', live: 'https://the-ledger-pascalskan.replit.app/', title: 'The Ledger: a live demo you can use. Choose a demo account to explore every role.', label: 'Live demo · choose a role and explore', note: 'This is a live demo with sample data. The Ledger is an ongoing project: the front end is finished and working, and the backend has not been implemented yet. Pick any demo account to explore it; for the full-size app, use Open live demo.' },
+    embed: { kind: 'app', src: 'https://the-ledger-pascalskan.replit.app/auth', host: 'the-ledger-pascalskan.replit.app', live: 'https://the-ledger-pascalskan.replit.app/', title: 'The Ledger: a live demo you can use. Choose a demo account to explore every role.', label: 'Live demo · choose a role and explore', note: 'This is a live demo with sample data. The Ledger is an ongoing project. Pick any demo account to explore it; for the full-size app, use Open live demo.' },
     flow: [['Operational data'], ['Review Centre', 1], ['Approval', 1], ['Financial records'], ['Reporting'], ['Accounting sync']],
     sections: [
       { h: 'What I built', items: [
