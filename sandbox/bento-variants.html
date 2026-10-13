@@ -13,12 +13,12 @@ h2,h3,p,ul{margin:0}ul{padding:0;list-style:none}
 .head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin:0 0 24px}
 .head+.bento{margin-bottom:clamp(56px,8vw,110px)}
 h2{font-weight:800;letter-spacing:-.06em;font-size:clamp(2.6rem,7vw,6rem);line-height:.9;color:var(--h2,var(--ink))}
-.head span{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;opacity:.6}
+.head>span{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;opacity:.6}
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--gap,14px)}
-.t{border-radius:var(--r,22px);padding:clamp(20px,2.4vw,34px);position:relative;overflow:hidden;min-height:210px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;opacity:0;transform:translateY(18px) scale(.98);transition:opacity .6s cubic-bezier(.23,1,.32,1),transform .6s cubic-bezier(.23,1,.32,1)}
-.t.in{opacity:1;transform:none}
-@media(hover:hover) and (pointer:fine){.t.in:hover{transform:translateY(-4px)}.t{transition:opacity .6s cubic-bezier(.23,1,.32,1),transform .25s cubic-bezier(.23,1,.32,1)}}
-@media(prefers-reduced-motion:reduce){.t{transform:none;transition:opacity .3s}}
+.t{border-radius:var(--r,22px);padding:clamp(20px,2.4vw,34px);position:relative;overflow:hidden;min-height:210px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;transition:translate .25s cubic-bezier(.23,1,.32,1);--mx:50%;--my:50%}
+@media(hover:hover) and (pointer:fine){.t:hover{translate:0 -4px}.t::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s ease;background:radial-gradient(380px circle at var(--mx) var(--my),rgba(255,255,255,.28),transparent 62%);mix-blend-mode:soft-light}.t:hover::after{opacity:1}}
+@media(prefers-reduced-motion:reduce){.t{transition:none}.t:hover{translate:none}}
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.14em;margin-bottom:-.14em}.w>span{display:inline-block;will-change:transform}
 .y{font:800 clamp(2.6rem,6vw,5rem)/.9 var(--sans);letter-spacing:-.06em}
 .t h3{font-size:clamp(1.2rem,2vw,1.7rem);letter-spacing:-.03em;line-height:1.08}
 .o{font:500 .72rem var(--mono);letter-spacing:.1em;text-transform:uppercase;opacity:.72;margin-top:8px}
@@ -44,8 +44,8 @@ h2{font-weight:800;letter-spacing:-.06em;font-size:clamp(2.6rem,7vw,6rem);line-h
 .sk .t{justify-content:flex-start}.sk .t ul{margin-top:auto}
 .stat{align-items:flex-start}
 .stat .big{margin-top:auto}
-.bar{height:8px;border-radius:9px;background:rgba(0,0,0,.18);overflow:hidden;margin-top:12px}.bar i{display:block;height:100%;background:currentColor;transform-origin:left;transform:scaleX(0);transition:transform 1.1s .3s cubic-bezier(.23,1,.32,1)}.t.in .bar i{transform:scaleX(var(--w))}
-</style></head><body>
+.bar{height:8px;border-radius:9px;background:rgba(0,0,0,.18);overflow:hidden;margin-top:12px}.bar i{display:block;height:100%;background:currentColor;transform-origin:left;transform:scaleX(var(--w))}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script></head><body>
 <div id="bar"><label for="sel">Bento</label><select id="sel">
 <option value="1">A · Classic dark bento, tidied (4 tiles + 4 skill tiles)</option>
 <option value="2">B · Cobalt &amp; yellow (matches current site)</option>
@@ -62,8 +62,9 @@ const SUP={d:'Worked on the build as a regular site worker from 2021 and was giv
 const DEG={t:'BSc Computer Science, Newcastle University',d:'Modules: Machine Learning, Data Science, Software Engineering, Database Systems, Algorithms & Data Structures, Software Architecture, Data Visualisation, AI Implementation.'};
 const tile=(cls,span,inner,extra='')=>`<div class="t ${cls} ${span}" ${extra}>${inner}</div>`;
 const role=(y,h,o,d)=>`<div class="y">${y}</div><div><h3>${E(h)}</h3><p class="o">${E(o)}</p>${d?`<p class="d">${E(d)}</p>`:''}</div>`;
-const skill=(h,a,n)=>`<h3 class="k">${E(h)}</h3><div class="big">${String(a.length).padStart(2,'0')}</div><ul>${li(a)}</ul>`;
-const head=(a,b)=>`<div class="head"><h2>${a}</h2><span>${b}</span></div>`;
+const skill=(h,a,n)=>`<h3 class="k">${E(h)}</h3><div class="big" data-n="${a.length}">${String(a.length).padStart(2,'0')}</div><ul>${li(a)}</ul>`;
+const words=t=>t.split(' ').map(w=>w==='&amp;'?`<span class="w" aria-hidden="true"><span>&amp;</span></span>`:`<span class="w" aria-hidden="true"><span>${w}</span></span>`).join(' ');
+const head=(a,b)=>`<div class="head"><h2 aria-label="${a}">${words(a)}</h2><span>${b}</span></div>`;
 const V={
 1:()=>`<div class="page th-dark">${head('Experience','2021 → now')}<div class="bento">
 ${tile('c1','s4',role('2026 →',F.t,F.o,F.d))}${tile('c2','s2',role('BSc',DEG.t,'Graduated 2026',''))}
@@ -89,8 +90,29 @@ ${tile('c5','s2',role('BSc','Computer Science','Newcastle University · 2026',''
 ${SK.map(([h,a],i)=>tile(i%2?'c1':'c5','s3',skill(h,a))).join('')}</div></div>`};
 const root=document.getElementById('root'),sel=document.getElementById('sel');
 const BG={1:'#0b0c10',2:'#1636e8',3:'#f2eee4',4:'#0b0c10',5:'#1636e8'};
-function load(){root.innerHTML=V[sel.value]();document.body.style.background=BG[sel.value];scrollTo(0,0);
- const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const ts=[...e.target.parentNode.children];setTimeout(()=>e.target.classList.add('in'),(ts.indexOf(e.target)%3)*70);io.unobserve(e.target)}}),{threshold:.1});
- root.querySelectorAll('.t').forEach(t=>io.observe(t))}
+let ctx;const rm=matchMedia('(prefers-reduced-motion: reduce)');
+function play(){
+ ctx&&ctx.revert();
+ if(rm.matches)return; /* final states render immediately */
+ gsap.registerPlugin(ScrollTrigger);
+ ctx=gsap.context(()=>{
+  root.querySelectorAll('h2').forEach(h=>gsap.from(h.querySelectorAll('.w>span'),{yPercent:115,duration:.9,ease:'expo.out',stagger:.07,scrollTrigger:{trigger:h,start:'top 90%',once:true}}));
+  const tiles=gsap.utils.toArray('.t',root);
+  gsap.set(tiles,{opacity:0,y:28,scale:.97});
+  tiles.forEach(t=>{gsap.set(t.querySelectorAll('li'),{opacity:0,y:8});t.querySelectorAll('.big[data-n]').forEach(n=>n.textContent='00');});
+  ScrollTrigger.batch(tiles,{start:'top 92%',once:true,onEnter:b=>{
+   gsap.to(b,{opacity:1,y:0,scale:1,duration:.85,ease:'expo.out',stagger:.07});
+   b.forEach((t,k)=>{const d=.2+k*.07;
+    gsap.to(t.querySelectorAll('li'),{opacity:1,y:0,duration:.5,ease:'power3.out',stagger:.025,delay:d+.1});
+    t.querySelectorAll('.big[data-n]').forEach(n=>{const o={v:0},N=+n.dataset.n;gsap.to(o,{v:N,duration:.9,delay:d,ease:'power3.out',onUpdate:()=>n.textContent=String(Math.round(o.v)).padStart(2,'0')})});
+    t.querySelectorAll('.bar i').forEach((i,m)=>gsap.fromTo(i,{scaleX:0},{scaleX:parseFloat(i.style.getPropertyValue('--w')),duration:1.2,ease:'expo.out',delay:d+.15+m*.12}));
+   });}});
+ },root);
+ ScrollTrigger.refresh();
+}
+function load(){root.innerHTML=V[sel.value]();document.body.style.background=BG[sel.value];scrollTo(0,0);play()}
+root.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const t=e.target.closest('.t');if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty('--mx',(e.clientX-r.left)+'px');t.style.setProperty('--my',(e.clientY-r.top)+'px')});
+document.fonts&&document.fonts.ready.then(()=>window.ScrollTrigger&&ScrollTrigger.refresh());
+rm.addEventListener('change',()=>{root.innerHTML=V[sel.value]();play()});
 sel.onchange=load;load();
 </script></body></html>
