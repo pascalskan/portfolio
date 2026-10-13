@@ -213,36 +213,20 @@ function t3({ st, tl, to, ctx, next }) {
 }
 
 /* ---------------------------------------------------------------- 4 · Forecasting → Ledger
-   Double entry: debits and credits are posted line by line, the totals agree to the penny, a double rule is drawn and the book is stamped BALANCED;
-   the dark page turns to ledger paper as the entries settle. */
+   The page is ruled line by line, top to bottom; behind each rule the dark page has turned to ledger paper, and the red margin line is drawn last. */
 function t4({ st, tl, to }) {
-  const rng = rngFrom(44);
-  const fmt = (n) => '£ ' + (n / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const R = 9;
-  const dr = Array.from({ length: R }, () => Math.round((40 + rng() * 5200) * 100) / 1 | 0);
-  const total = dr.reduce((a, b) => a + b, 0);
-  const cr = Array.from({ length: R - 1 }, () => Math.round((40 + rng() * 5200) * 100) | 0);
-  cr.push(total - cr.reduce((a, b) => a + b, 0));
-  if (cr[R - 1] < 100) { cr[R - 1] += 20000; cr[0] -= 20000; }
-  const ledgerFill = tl;
-  const book = h('div', 't4-book', st);
-  const head = h('div', 't4-head', book, '<span>DEBIT</span><span>CREDIT</span>');
-  const rows = [];
-  for (let i = 0; i < R; i++) {
-    const row = h('div', 't4-line', book, `<span>${fmt(dr[i])}</span><span>${fmt(cr[i])}</span>`);
-    rows.push(row);
-    tl.fromTo(row, { opacity: 0, y: 10 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.1 }, 0.06 + i * 0.05);
+  const paper = h('div', 't4-paper', st);
+  paper.style.background = to.to;
+  const n = Math.ceil(vh() / 44) + 1;
+  for (let i = 0; i < n; i++) {
+    const r = h('div', 't4-ruleline', st);
+    r.style.top = i * 44 + 22 + 'px';
+    tl.fromTo(r, { scaleX: 0 }, { scaleX: 1, duration: 0.16, ease: 'power3.out' }, 0.06 + (i / n) * 0.52);
   }
-  const tot = h('div', 't4-line t4-total', book, `<span>${fmt(total)}</span><span>${fmt(total)}</span>`);
-  const rule = h('div', 't4-rule', book);
-  const stamp = h('div', 't4-stamp', book, 'BALANCED');
-  tl.fromTo(head, { opacity: 0 }, { opacity: 1, duration: 0.1 }, 0.02)
-    .fromTo(tot, { opacity: 0, y: 10 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.12 }, 0.58)
-    .fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: 'power3.inOut', duration: 0.16, transformOrigin: '0 50%' }, 0.66)
-    .fromTo(stamp, { opacity: 0, scale: 1.6, rotation: -14 }, { opacity: 1, scale: 1, rotation: -7, ease: 'power3.in', duration: 0.09 }, 0.78)
-    .fromTo(book, { color: '#94aad0' }, { color: '#0d2a1f', ease: 'none', duration: 0.3 }, 0.34)
-    .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.3 }, 0.34);
-  void ledgerFill;
+  const mg = h('div', 't4-margin', st);
+  tl.fromTo(paper, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.62, ease: 'power2.inOut' }, 0.06)
+    .fromTo(mg, { scaleY: 0 }, { scaleY: 1, duration: 0.22, ease: 'power2.inOut' }, 0.62)
+    .set(st, { backgroundColor: to.to }, 0.7);
   return { ownsBg: true };
 }
 

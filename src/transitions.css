@@ -86,3 +86,7 @@
 .t4-total { border-bottom: 0; font-weight: 700; margin-top: 6px; }
 .t4-rule { height: 6px; border-top: 1px solid currentColor; border-bottom: 1px solid currentColor; }
 .t4-stamp { position: absolute; right: -2%; bottom: -78px; padding: 8px 18px; border: 3px solid #1c8a52; color: #1c8a52; border-radius: 6px; font-weight: 800; letter-spacing: .24em; font-size: 1.05em; transform: rotate(-7deg); background: rgba(243,247,240,.7); }
+
+/* 4 · Forecasting → Ledger: ruled page */
+.t4-paper { position: absolute; inset: 0; will-change: clip-path; }
+.t4-ruleline { position: absolute; left: 0; right: 0; height: 1px; background: rgba(13,42,31,.22); transform-origin: 0 50%; will-change: transform; }
