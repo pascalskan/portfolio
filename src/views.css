@@ -163,3 +163,27 @@
 .v-shot { position: relative; }
 
 .v-sec h2 { font-size: var(--fs-xs); line-height: 1.2; }
+
+/* slide gallery (case studies) */
+.v-gal { position: relative; margin: 0; border: 1px solid var(--s-line); border-radius: var(--r-md); overflow: hidden; background: rgba(127, 127, 127, .08); }
+.v-gal-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; outline-offset: -3px; overscroll-behavior-x: contain; }
+.v-gal-track::-webkit-scrollbar { display: none; }
+.v-gal-slide { position: relative; flex: 0 0 100%; margin: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+.v-gal-slide > img:not(.shot-phone) { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+.v-gal-slide figcaption { padding: 12px 16px; border-top: 1px solid var(--s-line); font-family: var(--mono); font-size: var(--fs-xs); letter-spacing: .04em; color: var(--s-mut); }
+.v-gal-slide.missing > img { visibility: hidden; }
+.v-gal-slide.missing::before { content: "Screenshot unavailable"; position: absolute; inset: 0 0 46px; display: grid; place-items: center; font-family: var(--mono); font-size: var(--fs-xs); color: var(--s-mut); }
+.v-gal-ctl { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--s-line); }
+.v-gal-btn { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--s-line); border-radius: 50%; background: none; color: inherit; font-size: 1.1rem; cursor: pointer; transition: background-color .16s ease, color .16s ease, border-color .16s ease, opacity .16s ease, transform .16s var(--ease); }
+.v-gal-btn:active { transform: scale(.94); }
+.v-gal-btn:disabled { opacity: .35; cursor: default; }
+.v-gal-dots { display: flex; gap: 2px; margin-inline: auto; }
+.v-gal-dots button { position: relative; width: 28px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; }
+.v-gal-dots button::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--s-line); transition: transform .24s var(--ease), background-color .24s ease; }
+.v-gal-dots button[aria-current="true"]::after { background: var(--s-acc); transform: scale(1.5); }
+.v-gal-n { font-family: var(--mono); font-size: var(--fs-xs); letter-spacing: .08em; color: var(--s-mut); min-width: 3.5em; text-align: right; }
+.v-gal :focus-visible { outline: 2px solid var(--s-acc); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .v-gal-btn:not(:disabled):hover { background: var(--s-ink); color: var(--s-bg); border-color: var(--s-ink); } }
+@media (max-width: 640px) { .v-gal-n { display: none; } .v-gal-dots button { width: 22px; } }
+.v-gal-slide > .shot-phone { position: absolute; inset: auto 3% 62px auto; width: 17%; height: auto; border-radius: var(--r-lg); border: 3px solid #111; box-shadow: 0 18px 50px -14px rgba(0,0,0,.6); object-fit: cover; background: #111; }
+@media (max-width: 720px) { .v-gal-slide > .shot-phone { width: 24%; inset: auto 4% 56px auto; } }

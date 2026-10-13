@@ -16,6 +16,12 @@ function caseHTML(id) {
   const flow = c.flow ? `<ol class="v-flow v-rise" aria-label="Pipeline">${c.flow.map(([t, hl]) => `<li${hl ? ' class="hl"' : ''}>${esc(t)}</li>`).join('')}</ol>` : '';
   const bars = c.bars ? `<figure class="chart v-bars v-rise"><figcaption>${esc(c.bars.caption)}</figcaption>${c.bars.rows.map((r) => `<div class="bar-row"><span class="bar-label">${esc(r.label)}</span><span class="track" role="img" aria-label="${esc(r.label)}: ${esc(r.val)}"><i class="fill${r.warn ? ' warn' : ''}" style="--w:${r.w}%${r.lo ? `;--lo:${(r.lo / r.w * 100).toFixed(1)}%` : ''}"></i></span><b class="val">${esc(r.val)}</b></div>`).join('')}<p class="fig-note">${esc(c.bars.note)}</p></figure>` : '';
   const shot = c.shot ? `<figure class="v-shot v-rise"><div class="v-shot-bar" aria-hidden="true"><i></i><i></i><i></i></div><img src="${esc(c.shot.src)}" alt="${esc(c.shot.alt)}" width="1440" height="900" decoding="async">${c.shot.mobile ? `<img class="shot-phone" src="${esc(c.shot.mobile)}" alt="The same page on a phone" width="390" height="844" decoding="async">` : ''}</figure>` : '';
+  const n = c.gallery ? c.gallery.length : 0;
+  const gallery = n ? `<section class="v-gal v-rise" role="region" aria-roledescription="carousel" aria-label="${esc(c.title)} screenshots" tabindex="-1">
+    <div class="v-shot-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="v-gal-track" tabindex="0" aria-label="Screenshots, use the arrow keys to move between them">${c.gallery.map((g, k) => `<figure class="v-gal-slide" role="group" aria-roledescription="slide" aria-label="${k + 1} of ${n}"><img src="${esc(g.src)}" alt="${esc(g.alt)}" width="1440" height="900" decoding="async"${k ? ' loading="lazy"' : ''}>${k === 0 && c.shot && c.shot.mobile ? `<img class="shot-phone" src="${esc(c.shot.mobile)}" alt="The same product on a phone" width="390" height="844" decoding="async">` : ''}<figcaption>${esc(g.cap)}</figcaption></figure>`).join('')}</div>
+    <div class="v-gal-ctl"><button type="button" class="v-gal-btn" data-dir="-1" aria-label="Previous screenshot">${ARROW_L}</button><div class="v-gal-dots" role="group" aria-label="Choose a screenshot">${c.gallery.map((g, k) => `<button type="button" data-i="${k}" aria-label="Screenshot ${k + 1}"${k ? '' : ' aria-current="true"'}></button>`).join('')}</div><span class="v-gal-n" aria-live="polite">1 / ${n}</span><button type="button" class="v-gal-btn" data-dir="1" aria-label="Next screenshot">${ARROW_R}</button></div>
+  </section>` : '';
   const embed = c.embed ? `<figure class="v-shot embed v-rise"><div class="shot-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span class="embed-title">Live dashboard · fully interactive</span><button class="embed-exit" type="button">Done</button><a class="embed-open" href="${esc(c.embed.src)}" target="_blank" rel="noopener">Open full screen${ARROW_UR}</a></div><iframe tabindex="-1" src="${esc(c.embed.src)}" title="${esc(c.embed.title)}" loading="lazy"></iframe><button class="embed-veil" type="button" aria-label="Activate the interactive dashboard"><span>Click to explore</span></button></figure>` : '';
   const sections = c.sections.map((s) => `<section class="v-sec v-rise"><h2>${esc(s.h)}</h2><ul>${s.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>`).join('');
   const links = c.links.map((l) => `<a class="v-link" href="${esc(l.href)}" rel="noopener noreferrer">${esc(l.label)}${ARROW_UR}</a>`).join('');
@@ -31,7 +37,7 @@ function caseHTML(id) {
     <dl class="v-facts v-rise">${c.facts.map((f) => `<div><dt>${esc(f.l)}</dt><dd>${esc(f.n)}</dd></div>`).join('')}</dl>
     ${embed}
     <div class="v-body">
-      <div class="v-main">${flow}${bars}${sections}${shot}</div>
+      <div class="v-main">${flow}${bars}${sections}${n ? gallery : shot}</div>
       <aside class="v-side v-rise" aria-label="Details">
         <h3>Built with</h3>
         <ul class="v-tags">${c.stack.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
@@ -118,6 +124,7 @@ export function initViews({ gsap, lenis, scrollTo }) {
       scroller.innerHTML = caseHTML(id);
       document.title = `${c.title} | Pascal Skannavis`;
       // a missing screenshot should leave no empty frame behind
+      initGallery();
       scroller.querySelectorAll('.v-shot img').forEach((img) => img.addEventListener('error', () => img.closest('.v-shot').remove(), { once: true }));
     } else {
       setTheme({ bg: '#0a0b0d', ink: '#ecebe6', mut: '#8b8f97', acc: '#ff7a45', line: '#22252b', style: 'nf' });
@@ -131,6 +138,43 @@ export function initViews({ gsap, lenis, scrollTo }) {
       document.title = 'Page not found | Pascal Skannavis';
     }
     scroller.scrollTop = 0;
+  }
+
+  let galCleanup = null;
+  function initGallery() {
+    if (galCleanup) { galCleanup(); galCleanup = null; }
+    const g = scroller.querySelector('.v-gal');
+    if (!g) return;
+    const track = g.querySelector('.v-gal-track');
+    const slides = [...track.children];
+    const dots = [...g.querySelectorAll('.v-gal-dots button')];
+    const num = g.querySelector('.v-gal-n');
+    const prev = g.querySelector('[data-dir="-1"]');
+    const next = g.querySelector('[data-dir="1"]');
+    let cur = 0;
+    const set = (k) => {
+      if (k === cur) return;
+      cur = k;
+      dots.forEach((d, j) => (j === k ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+      num.textContent = `${k + 1} / ${slides.length}`;
+      prev.disabled = k === 0; next.disabled = k === slides.length - 1;
+    };
+    prev.disabled = true;
+    const go = (k) => { k = Math.max(0, Math.min(slides.length - 1, k)); track.scrollTo({ left: slides[k].offsetLeft - track.offsetLeft, behavior: 'smooth' }); };
+    const onScroll = () => set(Math.round(track.scrollLeft / (slides[0].offsetWidth || 1)));
+    const onClick = (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.dir) go(cur + +b.dataset.dir); else if (b.dataset.i) go(+b.dataset.i);
+    };
+    const onKey = (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(cur + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+    };
+    track.addEventListener('scroll', onScroll, { passive: true });
+    track.addEventListener('keydown', onKey);
+    g.addEventListener('click', onClick);
+    g.querySelectorAll('img').forEach((img) => img.addEventListener('error', () => { const f = img.closest('.v-gal-slide'); if (img.classList.contains('shot-phone')) img.remove(); else f.classList.add('missing'); }, { once: true }));
+    galCleanup = () => { track.removeEventListener('scroll', onScroll); track.removeEventListener('keydown', onKey); g.removeEventListener('click', onClick); };
   }
 
   function animateIn(kind) {
