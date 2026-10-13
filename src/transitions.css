@@ -75,3 +75,15 @@
 .t11-fill { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 .t9-big span { display: block; width: .6em; text-align: center; }
+
+/* 1 · Hero → About: the torn sheet */
+.t1-sheet { will-change: contents; }
+.t1-note { position: absolute; z-index: 3; font: 600 var(--fs-xs)/1 var(--mono); letter-spacing: .16em; color: #a63a15; padding-left: 14px; border-left: 2px solid #a63a15; }
+/* 4 · Forecasting → Ledger: the book */
+.t4-book { position: absolute; left: 50%; top: 50%; width: min(640px, 86vw); transform: translate(-50%, -50%); font: 500 clamp(.8rem, 3.4vw, 1.15rem)/1 var(--mono); letter-spacing: .04em; color: #94aad0; font-variant-numeric: tabular-nums; }
+.t4-head, .t4-line { display: grid; grid-template-columns: 1fr 1fr; gap: 12%; padding: clamp(8px, 1.6vh, 14px) 0; border-bottom: 1px solid currentColor; border-bottom-color: color-mix(in srgb, currentColor 22%, transparent); }
+.t4-head { font-size: .72em; letter-spacing: .22em; opacity: .7; }
+.t4-head span:last-child, .t4-line span:last-child { text-align: right; }
+.t4-total { border-bottom: 0; font-weight: 700; margin-top: 6px; }
+.t4-rule { height: 6px; border-top: 1px solid currentColor; border-bottom: 1px solid currentColor; }
+.t4-stamp { position: absolute; right: -2%; bottom: -78px; padding: 8px 18px; border: 3px solid #1c8a52; color: #1c8a52; border-radius: 6px; font-weight: 800; letter-spacing: .24em; font-size: 1.05em; transform: rotate(-7deg); background: rgba(243,247,240,.7); }

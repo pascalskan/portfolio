@@ -55,96 +55,39 @@ function offsetBox(el, root) {
 }
 
 /* ---------------------------------------------------------------- 1 · Hero → About
-   The hero's loose network of nodes is organised: the nodes drift onto a drafting grid, the diagonal links bend into square
-   routes, the page turns to paper, and a route is traced through three milestones: plan, evidence, delivery. */
-function t1({ st, tl, ctx }) {
+   A sheet of paper is torn up the page from below, edge glowing like a fuse, and the three words of the About section (plan,
+   evidence, delivery) are pencilled on it as it passes; the sheet is the About page's own paper, so the hand-over is exact. */
+function t1({ st, tl, ctx, to }) {
   const rng = rngFrom(17);
-  const L = canvasLayer(st, ctx);
-  const COLS = 13, ROWS = 7, N = 46;
-  const key = [[3, 2], [6, 4], [9, 2]]; // milestone cells
-  const cells = [];
-  for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) if (!key.some((k) => k[0] === c && k[1] === r)) cells.push([c, r]);
-  for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
-  const pts = key.concat(cells.slice(0, N - 3)).map(([c, r], i) => ({ c, r, sx: 0.04 + rng() * 0.92, sy: 0.08 + rng() * 0.84, d: rng(), ph: rng() * 6.28, key: i < 3 }));
-  // each node links to its two nearest neighbours while scattered
-  const edges = []; const seen = new Set();
-  pts.forEach((a, i) => {
-    pts.map((b, j) => [j, (a.sx - b.sx) ** 2 + (a.sy - b.sy) ** 2]).filter((q) => q[0] !== i).sort((x, y) => x[1] - y[1]).slice(0, 2).forEach(([j]) => {
-      const k = i < j ? i + '-' + j : j + '-' + i;
-      if (!seen.has(k)) { seen.add(k); edges.push([i, j]); }
-    });
-  });
-  const labels = ['01 · PLAN', '02 · EVIDENCE', '03 · DELIVERY'];
-  const mix = (a, b, t) => `${Math.round(lerp(a[0], b[0], t))},${Math.round(lerp(a[1], b[1], t))},${Math.round(lerp(a[2], b[2], t))}`;
-  const EMBER = [255, 122, 69], LIGHT = [200, 205, 215], INK = [29, 26, 20];
-  const draw = (p) => {
-    const { g, size } = L; const W = size.w, H = size.h;
-    g.clearRect(0, 0, W, H);
-    const x0 = W * 0.08, x1 = W * 0.92, y0 = H * 0.17, y1 = H * 0.83;
-    const X = (c) => lerp(x0, x1, c / (COLS - 1)), Y = (r) => lerp(y0, y1, r / (ROWS - 1));
-    const k = smooth(0.28, 0.62, p); // dark page -> paper page
-    // drafting grid and dimension ticks
-    const ga = smooth(0.42, 0.78, p);
-    if (ga > 0) {
-      g.strokeStyle = `rgba(${mix(LIGHT, INK, k)},${0.16 * ga})`; g.lineWidth = 1;
-      for (let c = 0; c < COLS; c++) { g.beginPath(); g.moveTo(X(c), y0 - 18); g.lineTo(X(c), y0 - 18 + (y1 - y0 + 36) * ga); g.stroke(); }
-      for (let r = 0; r < ROWS; r++) { g.beginPath(); g.moveTo(x0 - 18, Y(r)); g.lineTo(x0 - 18 + (x1 - x0 + 36) * ga, Y(r)); g.stroke(); }
-      g.fillStyle = `rgba(${mix(LIGHT, INK, k)},${0.55 * ga})`; g.font = '500 10px "JetBrains Mono Variable", monospace';
-      for (let c = 0; c < COLS; c += 2) g.fillText(String(c * 10).padStart(3, '0'), X(c) - 8, y1 + 38);
-      for (let r = 0; r < ROWS; r += 2) g.fillText(String(r * 10).padStart(2, '0'), x0 - 40, Y(r) + 3);
+  const NP = 101, jag = Array.from({ length: NP }, () => rng());
+  const v = svg(`<defs><linearGradient id="t1sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(0,0,0,0)"/><stop offset="1" stop-color="rgba(0,0,0,.5)"/></linearGradient></defs>
+    <path class="sh" fill="url(#t1sh)"/><path class="pp" fill="${to.to}"/><path class="ed" fill="none" stroke="#ff7a45" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`,
+    'layer t1-sheet', st, { viewBox: '0 0 1000 1000', preserveAspectRatio: 'none' });
+  const sh = v.querySelector('.sh'), pp = v.querySelector('.pp'), ed = v.querySelector('.ed');
+  const edge = (p) => {
+    const e = eio(clamp((p - 0.04) / 0.66));
+    const base = lerp(1090, -110, e);
+    let top = '';
+    for (let i = 0; i < NP; i++) {
+      const x = i * 10, y = base + (jag[i] - 0.5) * 30 + Math.sin(x * 0.019 + 1.3) * 16 + Math.sin(x * 0.047) * 7;
+      top += (i ? 'L' : 'M') + x + ' ' + y.toFixed(1);
     }
-    // node positions: scattered (drifting) -> snapped to the grid
-    const pos = pts.map((q) => {
-      const t = eio(clamp((p - 0.1 - q.d * 0.2) / 0.4));
-      const dr = (1 - t) * 14;
-      const sx = W * q.sx + Math.sin(p * 6 + q.ph) * dr, sy = H * q.sy + Math.cos(p * 5 + q.ph) * dr;
-      return [lerp(sx, X(q.c), t), lerp(sy, Y(q.r), t), t];
-    });
-    // links: diagonal -> square (elbow routes)
-    const et = smooth(0.34, 0.7, p);
-    g.lineWidth = 1.2;
-    edges.forEach(([i, j]) => {
-      const a = pos[i], b = pos[j];
-      const ex = lerp((a[0] + b[0]) / 2, b[0], et), ey = lerp((a[1] + b[1]) / 2, a[1], et);
-      g.strokeStyle = `rgba(${mix(EMBER, INK, k)},${lerp(0.4, 0.34, k) * smooth(0.0, 0.14, p)})`;
-      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(ex, ey); g.lineTo(b[0], b[1]); g.stroke();
-    });
-    // nodes
-    pos.forEach((q, i) => {
-      g.fillStyle = `rgba(${mix(EMBER, INK, k)},${(0.55 + 0.4 * q[2]) * smooth(0.0, 0.14, p)})`;
-      g.beginPath(); g.arc(q[0], q[1], lerp(2.4, 3.6, q[2]), 0, 6.283); g.fill();
-    });
-    // traced route through the three milestones
-    const tr = smooth(0.6, 0.9, p);
-    const m = [0, 1, 2].map((i) => [X(pts[i].c), Y(pts[i].r)]);
-    const path = [m[0], [m[1][0], m[0][1]], m[1], [m[2][0], m[1][1]], m[2]];
-    const lens = []; let total = 0;
-    for (let i = 1; i < path.length; i++) { const l = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); lens.push(l); total += l; }
-    if (tr > 0) {
-      let rem = total * tr;
-      g.strokeStyle = 'rgba(166,58,21,.95)'; g.lineWidth = 3; g.lineJoin = 'round'; g.beginPath(); g.moveTo(path[0][0], path[0][1]);
-      for (let i = 1; i < path.length && rem > 0; i++) {
-        const f = Math.min(1, rem / lens[i - 1]);
-        g.lineTo(lerp(path[i - 1][0], path[i][0], f), lerp(path[i - 1][1], path[i][1], f));
-        rem -= lens[i - 1];
-      }
-      g.stroke(); g.lineWidth = 1;
-    }
-    m.forEach((q, i) => {
-      const a = smooth(0.62 + i * 0.09, 0.7 + i * 0.09, p);
-      if (a <= 0) return;
-      g.strokeStyle = `rgba(166,58,21,${a})`; g.fillStyle = `rgba(236,228,211,${a})`; g.lineWidth = 2.5;
-      g.beginPath(); g.arc(q[0], q[1], 5 + 9 * (1 - a) + 4, 0, 6.283); g.fill(); g.stroke(); g.lineWidth = 1;
-      g.fillStyle = `rgba(29,26,20,${a})`; g.font = '600 12px "JetBrains Mono Variable", monospace';
-      g.fillText(labels[i], q[0] + 16, q[1] - 16 - (1 - a) * 8);
-    });
+    const back = top.replace(/^M/, 'L').split('L').filter(Boolean).map((q) => q.split(' ').map(Number)); // [[x,y],...]
+    pp.setAttribute('d', top + 'L1000 1200L0 1200Z');
+    ed.setAttribute('d', top);
+    sh.setAttribute('d', top + back.slice().reverse().map(([x, y]) => 'L' + x + ' ' + (y - 70).toFixed(1)).join('') + 'Z');
+    ed.style.opacity = e > 0.985 ? 0 : 0.85;
   };
-  ctx.redraw = () => draw(tl.progress());
-  ctx.update.push(draw);
-  draw(0);
-  tl.fromTo(st, { backgroundColor: ctx.to.from }, { backgroundColor: ctx.to.to, ease: 'none', duration: 0.3 }, 0.28);
-  // once the route is drawn, the plan sinks as the page rises over it
-  tl.to(L.c, { y: '22vh', opacity: 0, ease: 'power1.in', duration: 0.24 }, 0.76);
+  ctx.redraw = () => edge(tl.progress());
+  ctx.update.push(edge);
+  edge(0);
+  const notes = ['01 · PLAN', '02 · EVIDENCE', '03 · DELIVERY'].map((t, i) => {
+    const n = h('div', 't1-note', st, t);
+    n.style.cssText = `left:${8 + i * 6}vw;top:${34 + i * 15}vh`;
+    tl.fromTo(n, { opacity: 0, x: -14 }, { opacity: 1, x: 0, ease: 'power2.out', duration: 0.12 }, 0.5 + i * 0.07).to(n, { opacity: 0, duration: 0.1 }, 0.86);
+    return n;
+  });
+  tl.set(st, { backgroundColor: to.to }, 0.72);
   return { ownsBg: true };
 }
 
@@ -277,27 +220,37 @@ function t3({ st, tl, to, ctx, next }) {
 }
 
 /* ---------------------------------------------------------------- 4 · Forecasting → Ledger
-   Ruled ledger rows fill with paper one after another, figures are entered, and the red margin line is ruled down. */
-function t4({ st, tl }) {
+   Double entry: debits and credits are posted line by line, the totals agree to the penny, a double rule is drawn and the book is stamped BALANCED;
+   the dark page turns to ledger paper as the entries settle. */
+function t4({ st, tl, to }) {
   const rng = rngFrom(44);
-  const rowsEl = h('div', 't4-rows', st);
-  const n = Math.ceil(vh() / 40) + 1;
-  const step = 0.5 / n;
-  const figs = ['1,036 → 9', '£ 24,180.00', 'Σ 3,412', 'APPROVED', 'R-01 ✓', '1,961 → 399 KB', 'Dr / Cr', '0 overflow', 'TOTAL  ——', '£ 6,075.50'];
-  for (let i = 0; i < n; i++) {
-    const row = h('div', 't4-row', rowsEl);
-    row.style.top = i * 40 + 'px';
-    row.style.transformOrigin = i % 2 ? '100% 50%' : '0 50%';
-    const at = 0.03 + i * step;
-    tl.fromTo(row, { scaleX: 0 }, { scaleX: 1, ease: 'power3.out', duration: 0.22 }, at);
-    if (i % 3 === 1 && i < n - 2) {
-      const fg = h('div', 't4-fig', rowsEl, figs[(i * 7 + 3) % figs.length]);
-      fg.style.top = i * 40 + 'px'; fg.style.left = 14 + rng() * 52 + 'vw';
-      tl.fromTo(fg, { opacity: 0, x: 14 }, { opacity: 0.72, x: 0, ease: 'power2.out', duration: 0.1 }, at + 0.14).to(fg, { opacity: 0, duration: 0.1 }, 0.84);
-    }
+  const fmt = (n) => '£ ' + (n / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const R = 9;
+  const dr = Array.from({ length: R }, () => Math.round((40 + rng() * 5200) * 100) / 1 | 0);
+  const total = dr.reduce((a, b) => a + b, 0);
+  const cr = Array.from({ length: R - 1 }, () => Math.round((40 + rng() * 5200) * 100) | 0);
+  cr.push(total - cr.reduce((a, b) => a + b, 0));
+  if (cr[R - 1] < 100) { cr[R - 1] += 20000; cr[0] -= 20000; }
+  const ledgerFill = tl;
+  const book = h('div', 't4-book', st);
+  const head = h('div', 't4-head', book, '<span>DEBIT</span><span>CREDIT</span>');
+  const rows = [];
+  for (let i = 0; i < R; i++) {
+    const row = h('div', 't4-line', book, `<span>${fmt(dr[i])}</span><span>${fmt(cr[i])}</span>`);
+    rows.push(row);
+    tl.fromTo(row, { opacity: 0, y: 10 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.1 }, 0.06 + i * 0.05);
   }
-  const mg = h('div', 't4-margin', st);
-  tl.fromTo(mg, { scaleY: 0 }, { scaleY: 1, ease: 'power2.inOut', duration: 0.24 }, 0.58);
+  const tot = h('div', 't4-line t4-total', book, `<span>${fmt(total)}</span><span>${fmt(total)}</span>`);
+  const rule = h('div', 't4-rule', book);
+  const stamp = h('div', 't4-stamp', book, 'BALANCED');
+  tl.fromTo(head, { opacity: 0 }, { opacity: 1, duration: 0.1 }, 0.02)
+    .fromTo(tot, { opacity: 0, y: 10 }, { opacity: 1, y: 0, ease: 'power2.out', duration: 0.12 }, 0.58)
+    .fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: 'power3.inOut', duration: 0.16, transformOrigin: '0 50%' }, 0.66)
+    .fromTo(stamp, { opacity: 0, scale: 1.6, rotation: -14 }, { opacity: 1, scale: 1, rotation: -7, ease: 'power3.in', duration: 0.09 }, 0.78)
+    .fromTo(book, { color: '#94aad0' }, { color: '#0d2a1f', ease: 'none', duration: 0.3 }, 0.34)
+    .fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.3 }, 0.34);
+  void ledgerFill;
+  return { ownsBg: true };
 }
 
 /* ---------------------------------------------------------------- 5 · Ledger → Travel
