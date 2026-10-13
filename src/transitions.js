@@ -252,13 +252,6 @@ function t4({ st, tl, to }) {
 function t5({ st, tl, to, ctx, next }) {
   const rng = rngFrom(55);
   const clouds = [];
-  for (let i = 0; i < 7; i++) {
-    const c = h('div', 't5-cloud', st);
-    const w = 22 + rng() * 26;
-    c.style.cssText = `left:${rng() * 80}vw;top:${6 + rng() * 74}vh;width:${w}vw;height:${w * 0.28}vw`;
-    tl.fromTo(c, { x: '30vw' }, { x: `${-(40 + rng() * 80)}vw`, ease: 'none', duration: 1 }, 0);
-    clouds.push(c);
-  }
   // a real globe: the world's coastlines on an orthographic sphere that turns as you scroll (canvas, drawn under the route)
   const GL = canvasLayer(st, ctx);
   const proj = geoOrthographic().clipAngle(90).precision(0.6);
@@ -267,33 +260,33 @@ function t5({ st, tl, to, ctx, next }) {
   const state = { th: 0, q: 0 };
   const drawGlobe = () => {
     const { g, size } = GL, W = size.w, H = size.h, u = Math.min(W / 100, H / 56);
-    const cx = W / 2, cy = (H - 56 * u) / 2 + 30 * u, R = 22 * u;
+    const cx = W / 2, cy = (H - 56 * u) / 2 + 30 * u, R = 15 * u;
     g.clearRect(0, 0, W, H);
     proj.translate([cx, cy]).scale(R).rotate([-(state.th * 180) / Math.PI + 20, -22, 0]);
     // atmosphere
     const halo = g.createRadialGradient(cx, cy, R * 0.96, cx, cy, R * 1.22);
-    halo.addColorStop(0, 'rgba(140,215,255,.38)'); halo.addColorStop(1, 'rgba(140,215,255,0)');
+    halo.addColorStop(0, 'rgba(140,215,255,.14)'); halo.addColorStop(1, 'rgba(140,215,255,0)');
     g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, R * 1.22, 0, 6.283); g.fill();
     // ocean
     const sea = g.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
-    sea.addColorStop(0, '#2f8fb8'); sea.addColorStop(0.6, '#10638a'); sea.addColorStop(1, '#073a58');
+    sea.addColorStop(0, '#2a7a74'); sea.addColorStop(0.6, '#1a5f66'); sea.addColorStop(1, '#0e3f4a');
     g.fillStyle = sea; g.beginPath(); g.arc(cx, cy, R, 0, 6.283); g.fill();
     g.save(); g.beginPath(); g.arc(cx, cy, R, 0, 6.283); g.clip();
     g.beginPath(); gpath(grat); g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 0.6; g.stroke();
-    g.beginPath(); gpath(land); g.fillStyle = '#9fd3a0'; g.fill(); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 0.5; g.stroke();
+    g.beginPath(); gpath(land); g.fillStyle = '#86b38c'; g.fill(); g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 0.5; g.stroke();
     // terminator: light from the upper left
     const sh = g.createRadialGradient(cx - R * 0.45, cy - R * 0.5, R * 0.25, cx, cy, R * 1.05);
     sh.addColorStop(0, 'rgba(255,255,255,.16)'); sh.addColorStop(0.55, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(2,20,35,.55)');
     g.fillStyle = sh; g.fillRect(cx - R, cy - R, R * 2, R * 2);
     g.restore();
-    g.beginPath(); g.arc(cx, cy, R, 0, 6.283); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1; g.stroke();
+    g.beginPath(); g.arc(cx, cy, R, 0, 6.283); g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1; g.stroke();
   };
   ctx.redraw = drawGlobe;
-  const route = 'M6 47 Q50 -16 94 41';
+  const route = 'M6 47 Q50 2 94 41';
   const v = svg(`
-    <path d="${route}" fill="none" stroke="rgba(254,215,0,.4)" stroke-width=".35" stroke-dasharray=".9 1.3"/>
-    <path class="route" d="${route}" fill="none" stroke="#fed700" stroke-width=".55" stroke-linecap="round"/>
-    <circle cx="6" cy="47" r="1.1" fill="#fed700"/><circle class="dest" cx="94" cy="41" r="1.1" fill="#fed700"/>
+    <path d="${route}" fill="none" stroke="rgba(254,215,0,.22)" stroke-width=".25" stroke-dasharray=".9 1.3"/>
+    <path class="route" d="${route}" fill="none" stroke="#fed700" stroke-opacity=".65" stroke-width=".32" stroke-linecap="round"/>
+    <circle cx="6" cy="47" r=".7" fill="#fed700" fill-opacity=".7"/><circle class="dest" cx="94" cy="41" r=".7" fill="#fed700" fill-opacity=".7"/>
     <path class="plane" d="M4.4 0 C4 -.55 3 -.6 2.2 -.6 L-.5 -4.4 L-1.9 -4.4 L-.8 -.7 L-2.9 -.6 L-3.6 -1.9 L-4.6 -1.9 L-4 0 L-4.6 1.9 L-3.6 1.9 L-2.9 .6 L-.8 .7 L-1.9 4.4 L-.5 4.4 L2.2 .6 C3 .6 4 .55 4.4 0 Z" fill="#ffffff" stroke="rgba(3,44,66,.35)" stroke-width=".18"/>
   `, 'layer', st, { viewBox: '0 0 100 56', preserveAspectRatio: 'xMidYMid meet' });
   const route$ = v.querySelector('.route'), plane = v.querySelector('.plane'), dest = v.querySelector('.dest');
@@ -336,7 +329,7 @@ function t5({ st, tl, to, ctx, next }) {
   ctx.refresh.push(measure);
   const posePlane = () => {
     const a = route$.getPointAtLength(len * state.q), b = route$.getPointAtLength(Math.min(len, len * state.q + 1));
-    plane.setAttribute('transform', `translate(${a.x} ${a.y}) rotate(${(Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI}) scale(.85)`);
+    plane.setAttribute('transform', `translate(${a.x} ${a.y}) rotate(${(Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI}) scale(.55)`);
   };
   tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.55 }, 0.05)
     .to(state, { th: Math.PI * 1.6, ease: 'none', duration: 1, onUpdate: drawGlobe }, 0)
@@ -583,7 +576,7 @@ const DEFS = [
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 330, over: true, riseFade: true, core: 0.70 },
-  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 360, over: true, riseFade: true, core: 0.72 },
+  { before: '#twb', fn: t5, label: 'Departing → Travel Without Borders', ink: ['#0d2a1f', '#ffffff'], T: 240, over: true, riseFade: true, core: 0.72 },
   { before: '#drivepro', fn: t6, label: 'Learner → M.G. Drive Pro', ink: ['#ffffff', '#fafaf8'], T: 300, over: true, riseFade: true, core: 0.667 },
   { before: '#dashboard', fn: t7, label: 'Charting → Dashboard', ink: ['#fafaf8', '#111'], T: 300, over: true, lead: [0.1, 0.12] },
   { before: '#more', fn: t8, label: 'Refracting → Side projects', ink: ['#4d4a44', '#c8bcf2'], T: 250, land: 0.9, fade: 0.1 },
