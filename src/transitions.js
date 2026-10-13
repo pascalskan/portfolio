@@ -1,6 +1,7 @@
 /* Scroll transitions: one unique, scrubbed sequence between every pair of sections.
    Each seam = tall block + sticky stage that overlaps the last screen of the previous section (the stage fades in over it)
    and lands on the live next section; a GSAP timeline (duration 1) is scrubbed by the scroll through it. */
+import { vh } from './vh.js';
 
 let gsap_set = (el, v) => Object.assign(el.style, {});
 const NS = 'http://www.w3.org/2000/svg';
@@ -259,11 +260,11 @@ function t3({ st, tl, to, ctx, next }) {
   const edge = h('div', 't3-edge', st);
   edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:linear-gradient(to bottom,rgba(0,0,0,0),${to.to} 78%)`;
   const place = () => {
-    const eh = Math.round(window.innerHeight * 0.3);
+    const eh = Math.round(vh() * 0.3);
     edge.style.height = eh + 'px';
     const y = Math.round(next.getBoundingClientRect().top);
     edge.style.transform = `translate3d(0,${y - eh}px,0)`;
-    edge.style.visibility = y < window.innerHeight + 2 && y > -eh ? 'visible' : 'hidden';
+    edge.style.visibility = y < vh() + 2 && y > -eh ? 'visible' : 'hidden';
   };
   ctx.progFns.push(place);
   ctx.refresh.push(place);
@@ -278,7 +279,7 @@ function t3({ st, tl, to, ctx, next }) {
 function t4({ st, tl }) {
   const rng = rngFrom(44);
   const rowsEl = h('div', 't4-rows', st);
-  const n = Math.ceil(window.innerHeight / 40) + 1;
+  const n = Math.ceil(vh() / 40) + 1;
   const step = 0.5 / n;
   const figs = ['1,036 → 9', '£ 24,180.00', 'Σ 3,412', 'APPROVED', 'R-01 ✓', '1,961 → 399 KB', 'Dr / Cr', '0 overflow', 'TOTAL  ——', '£ 6,075.50'];
   for (let i = 0; i < n; i++) {
@@ -634,9 +635,9 @@ export function revealTrigger(el, start = 'top 88%') {
   if (seam && seam.classList.contains('seam') && !seam.dataset.over) {
     let y = 0, e = el;
     while (e && e !== sec) { y += e.offsetTop; e = e.offsetParent; }
-    if (y < window.innerHeight * 0.9) {
+    if (y < vh() * 0.9) {
       const land = parseFloat(seam.dataset.land || '0.93');
-      return { trigger: seam, once: true, start: () => seam.getBoundingClientRect().top + window.scrollY + (land + 0.03) * (seam.offsetHeight - window.innerHeight) };
+      return { trigger: seam, once: true, start: () => seam.getBoundingClientRect().top + window.scrollY + (land + 0.03) * (seam.offsetHeight - vh()) };
     }
   }
   return { trigger: el, start, once: true };
@@ -669,10 +670,10 @@ export function initTransitions(gsap, ScrollTrigger) {
       const edge = h('div', 'seam-edge', st);
       edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:linear-gradient(to bottom,rgba(0,0,0,0),${to} 78%)`;
       const place = () => {
-        const eh = Math.round(window.innerHeight * 0.3), y = Math.round(next.getBoundingClientRect().top);
+        const eh = Math.round(vh() * 0.3), y = Math.round(next.getBoundingClientRect().top);
         edge.style.height = eh + 'px';
         edge.style.transform = `translate3d(0,${y - eh}px,0)`;
-        edge.style.visibility = y < window.innerHeight + 2 && y > -eh ? 'visible' : 'hidden';
+        edge.style.visibility = y < vh() + 2 && y > -eh ? 'visible' : 'hidden';
       };
       window.addEventListener('scroll', place, { passive: true });
       cleanups.push(() => window.removeEventListener('scroll', place));
@@ -715,7 +716,7 @@ export function initTransitions(gsap, ScrollTrigger) {
       const m0 = Math.max(0.5, land - 0.06);
       placeFn = (m) => {
         // measured from the seam itself, so the hold is exact whatever the scroll smoothing is doing
-        const nat = seam.getBoundingClientRect().bottom - window.innerHeight;
+        const nat = seam.getBoundingClientRect().bottom - vh();
         const ny = Math.round(nat); // whole pixels only, so text never sits on a fractional offset (that is what shimmered)
         next.style.transform = m >= m0 && m < 0.999 && ny > 0 ? `translate3d(0, ${-ny}px, 0)` : '';
       };
