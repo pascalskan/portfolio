@@ -167,9 +167,9 @@
 /* slide gallery (case studies): centre slide large, neighbours peeking either side */
 .v-gal { margin: clamp(40px, 6vw, 80px) calc(50% - 50vw) 0; position: relative; }
 .v-gal-stage { position: relative; }
-.v-gal-track { display: flex; gap: 2.4%; padding-inline: 19%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-x: contain; outline-offset: -3px; padding-block: 8px 4px; }
+.v-gal-track { display: flex; gap: 1.6%; padding-inline: 17%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-x: contain; outline-offset: -3px; padding-block: 8px 4px; }
 .v-gal-track::-webkit-scrollbar { display: none; }
-.v-gal-slide { flex: 0 0 62%; margin: 0; scroll-snap-align: center; scroll-snap-stop: always; cursor: pointer; opacity: .42; transform: scale(.88); transform-origin: center top; transition: opacity .5s cubic-bezier(.23, 1, .32, 1), transform .5s cubic-bezier(.23, 1, .32, 1); }
+.v-gal-slide { flex: 0 0 66%; margin: 0; scroll-snap-align: center; scroll-snap-stop: always; cursor: pointer; opacity: .42; transform: scale(.92); transform-origin: center top; transition: opacity .5s cubic-bezier(.23, 1, .32, 1), transform .5s cubic-bezier(.23, 1, .32, 1); }
 .v-gal-slide.is-active { opacity: 1; transform: none; cursor: default; }
 .v-gal-frame { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--s-line); border-radius: var(--r-md); background: rgba(127, 127, 127, .12); box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .55); }
 .v-gal-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; }
@@ -178,7 +178,7 @@
 .v-gal-slide.is-active figcaption { opacity: 1; }
 .v-gal-slide.missing .v-gal-frame::after { content: "Screenshot unavailable"; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--mono); font-size: var(--fs-xs); color: var(--s-mut); }
 .v-gal-slide.missing img { visibility: hidden; }
-.v-gal-btn { position: absolute; top: calc((62vw * .625) / 2 - 24px); display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid var(--s-line); border-radius: 50%; background: var(--s-bg); color: var(--s-ink); font-size: 1.15rem; cursor: pointer; z-index: 2; transition: background-color .16s ease, color .16s ease, border-color .16s ease, opacity .16s ease, transform .16s cubic-bezier(.23, 1, .32, 1); }
+.v-gal-btn { position: absolute; top: calc((66vw * .625) / 2 - 24px); display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid var(--s-line); border-radius: 50%; background: var(--s-bg); color: var(--s-ink); font-size: 1.15rem; cursor: pointer; z-index: 2; transition: background-color .16s ease, color .16s ease, border-color .16s ease, opacity .16s ease, transform .16s cubic-bezier(.23, 1, .32, 1); }
 .v-gal-prev { left: clamp(10px, 4.5%, 70px); }
 .v-gal-next { right: clamp(10px, 4.5%, 70px); }
 .v-gal-btn:active { transform: scale(.94); }
