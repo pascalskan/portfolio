@@ -60,7 +60,7 @@ h2,h3,p,ul,ol{margin:0}ul,ol{padding:0;list-style:none}
 .L3 .item{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:28px 0;border-top:1.5px solid #16130d}
 .L3 .item:last-child{border-bottom:1.5px solid #16130d}
 .L3 .item .when{font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#6b6556;padding-top:6px}
-.L3 .sec>div{min-width:0}.L3 .sk .big{overflow-wrap:break-word}.L3 .item h3{font:400 clamp(1.8rem,3.4vw,3rem)/1 var(--serif);letter-spacing:-.02em}
+.L3 .sec>div{min-width:0}.L3 .sk .big,.L3 .item>div{overflow-wrap:anywhere;min-width:0}.L3 .sk .big i{padding:0 .2em}.L3 .item h3{font:400 clamp(1.8rem,3.4vw,3rem)/1 var(--serif);letter-spacing:-.02em}
 .L3 .item .org{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin:10px 0}
 .L3 .item p:last-child{max-width:58ch;line-height:1.6;color:#3c372c}
 .L3 .sk .row{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:22px 0;border-top:1.5px solid #16130d}
@@ -68,7 +68,7 @@ h2,h3,p,ul,ol{margin:0}ul,ol{padding:0;list-style:none}
 .L3 .sk h3{font:500 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#6b6556;padding-top:10px}
 .L3 .sk .big{font:400 clamp(1.6rem,3vw,2.6rem)/1.15 var(--serif);letter-spacing:-.01em}
 .L3 .sk .big i{color:var(--acc);font-style:normal;padding:0 .35em}
-@media(max-width:860px){.L3 .sec{grid-template-columns:1fr}.L3 .word{position:static}.L3 .item,.L3 .sk .row{grid-template-columns:1fr;gap:8px}}
+@media(max-width:860px){.L3 .sec{grid-template-columns:1fr}.L3 .word{position:static}.L3 .item,.L3 .sk .row{grid-template-columns:minmax(0,1fr);gap:8px}}
 
 /* ============ 4 · CAREER TRACK (gantt bars + skill columns) ============ */
 .L4{background:#0f1a3a;color:#eef2ff;--acc:#ffe14d;--b:#3b5bff}
