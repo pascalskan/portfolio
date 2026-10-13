@@ -80,7 +80,7 @@ function t1({ st, tl, ctx }) {
   ctx.redraw = () => draw(tl.progress());
   ctx.update.push(draw);
   draw(0);
-  tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 0.5, scale: 1.25, ease: 'sine.inOut', duration: 0.6 }, 0.04).to(glow, { opacity: 0, ease: 'sine.inOut', duration: 0.3 }, 0.7);
+  tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 0.32, scale: 1.2, ease: 'sine.inOut', duration: 0.5 }, 0.04).to(glow, { opacity: 0, ease: 'sine.inOut', duration: 0.3 }, 0.55);
   tl.to(st, { backgroundColor: '#5e5a50', ease: 'sine.inOut', duration: 0.85 }, 0.1); // the dark page warms toward the paper as the section climbs, so the step from dark to light is gentle
 }
 
@@ -614,7 +614,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     const st = h('div', 'seam-stick', seam);
     st.style.backgroundColor = from;
     next.parentNode.insertBefore(seam, next);
-    if (def.over && def.riseFade) { // soft leading edge so what is on the stage dissolves into the rising section instead of being sliced by a hard line
+    if (def.over && def.riseFade && !def.fadeIn) { // soft leading edge so what is on the stage dissolves into the rising section instead of being sliced by a hard line
       const edge = h('div', 'seam-edge', st);
       const soft = (n) => `color-mix(in srgb, ${to} ${n}%, transparent)`;
       edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:${def.fadeIn ? `linear-gradient(to bottom,transparent,${soft(6)} 18%,${soft(18)} 36%,${soft(42)} 56%,${soft(74)} 78%,${to})` : `linear-gradient(to bottom,rgba(0,0,0,0),${to} 78%)`}`;
@@ -683,8 +683,14 @@ export function initTransitions(gsap, ScrollTrigger) {
     if (def.over && def.fadeIn) { // the section fades in while it rises with the scroll (no hold, no hand-over pause)
       const Tn = (def.T || 150) * (mobile ? 0.8 : 1) / 100; // seam run in screens
       const a0 = 1 - 1 / Tn, a1 = 1 - 0.15 / Tn;
-      const edgeEl = st.querySelector('.seam-edge');
-      placeFn = (m) => { const o = clamp((m - a0) / (a1 - a0)); next.style.opacity = o >= 0.999 ? '' : String(+o.toFixed(3)); if (edgeEl) edgeEl.style.opacity = String(+o.toFixed(3)); };
+      const stops = [0, 0.04, 0.13, 0.27, 0.46, 0.67, 0.86, 1]; // eased feather, so there is one soft edge and no seam or band to see
+      placeFn = (m) => {
+        const o = clamp((m - a0) / (a1 - a0));
+        next.style.opacity = o >= 0.999 ? '' : String(+o.toFixed(3));
+        const f = Math.round(vh() * 0.6 * (1 - clamp((m - a0) / (1 - a0)))); // the feather shrinks away as the section lands
+        const mask = f > 2 ? `linear-gradient(to bottom, ${stops.map((a, i) => `rgba(0,0,0,${a}) ${Math.round(i / (stops.length - 1) * f)}px`).join(',')}, #000 ${f}px)` : '';
+        next.style.webkitMaskImage = mask; next.style.maskImage = mask;
+      };
       placeFn(0);
     }
     master.set({}, {}, 1);
