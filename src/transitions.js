@@ -81,7 +81,12 @@ function t1({ st, tl, ctx }) {
   ctx.update.push(draw);
   draw(0);
   tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 0.32, scale: 1.2, ease: 'sine.inOut', duration: 0.5 }, 0.04).to(glow, { opacity: 0, ease: 'sine.inOut', duration: 0.3 }, 0.55);
-  tl.to(st, { backgroundColor: '#5e5a50', ease: 'sine.inOut', duration: 0.85 }, 0.1); // the dark page warms toward the paper as the section climbs, so the step from dark to light is gentle
+  // two tone layers cross-fade in over the dark page (opacity only, so nothing re-paints while scrolling): first a warm grey, then close to the paper,
+  // so by the time the About section's edge climbs into view the step from dark to light is already small
+  const tone = (c) => { const d = h('div', 'layer', st); d.style.cssText = `position:absolute;inset:0;background:${c};opacity:0;pointer-events:none`; return d; };
+  const light = tone('#cdc5b3'), warm = tone('#5e5a50');
+  st.insertBefore(light, st.firstChild); st.insertBefore(warm, st.firstChild);
+  tl.to(warm, { opacity: 1, ease: 'sine.inOut', duration: 0.4 }, 0.05).to(light, { opacity: 1, ease: 'sine.inOut', duration: 0.45 }, 0.3);
 }
 
 /* ---------------------------------------------------------------- 2 · About → Work
@@ -199,9 +204,9 @@ function t3({ st, tl, to, ctx, next }) {
   edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:linear-gradient(to bottom,rgba(0,0,0,0),${to.to} 78%)`;
   const place = () => {
     const eh = Math.round(vh() * 0.3);
-    edge.style.height = eh + 'px';
+    edge.style.height = (eh + 3) + 'px'; // runs 3px under the section, so a fractional scroll position can never leave a hairline gap between them
     const y = Math.round(next.getBoundingClientRect().top);
-    edge.style.transform = `translate3d(0,${y - eh}px,0)`;
+    edge.style.transform = `translate3d(0,${Math.floor(y) - eh}px,0)`;
     edge.style.visibility = y < vh() + 2 && y > -eh ? 'visible' : 'hidden';
   };
   ctx.progFns.push(place);
@@ -556,7 +561,7 @@ function t11({ st, tl, ctx }) {
 /* ---------------------------------------------------------------- wiring */
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Organising → About', ink: ['#8b8d93', '#5a523f'], T: 170, over: true, riseFade: true, fadeIn: true, lead: [0.16, 0.1], core: 0.7 },
+  { before: '#about', fn: t1, label: 'Organising → About', ink: ['#8b8d93', '#5a523f'], T: 170, over: true, riseFade: true, lead: [0.16, 0.1], core: 0.7 },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 330, over: true, riseFade: true, core: 0.70 },
@@ -614,14 +619,13 @@ export function initTransitions(gsap, ScrollTrigger) {
     const st = h('div', 'seam-stick', seam);
     st.style.backgroundColor = from;
     next.parentNode.insertBefore(seam, next);
-    if (def.over && def.riseFade && !def.fadeIn) { // soft leading edge so what is on the stage dissolves into the rising section instead of being sliced by a hard line
+    if (def.over && def.riseFade) { // soft leading edge so what is on the stage dissolves into the rising section instead of being sliced by a hard line
       const edge = h('div', 'seam-edge', st);
-      const soft = (n) => `color-mix(in srgb, ${to} ${n}%, transparent)`;
-      edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:${def.fadeIn ? `linear-gradient(to bottom,transparent,${soft(6)} 18%,${soft(18)} 36%,${soft(42)} 56%,${soft(74)} 78%,${to})` : `linear-gradient(to bottom,rgba(0,0,0,0),${to} 78%)`}`;
+      edge.style.cssText = `position:absolute;left:0;right:0;top:0;z-index:5;pointer-events:none;will-change:transform;background:linear-gradient(to bottom,rgba(0,0,0,0),${to} 78%)`;
       const place = () => {
-        const eh = Math.round(vh() * (def.fadeIn ? 0.55 : 0.3)), y = Math.round(next.getBoundingClientRect().top);
-        edge.style.height = eh + 'px';
-        edge.style.transform = `translate3d(0,${y - eh}px,0)`;
+        const eh = Math.round(vh() * 0.3), y = Math.round(next.getBoundingClientRect().top);
+        edge.style.height = (eh + 3) + 'px'; // runs 3px under the section, so a fractional scroll position can never leave a hairline gap between them
+        edge.style.transform = `translate3d(0,${Math.floor(y) - eh}px,0)`;
         edge.style.visibility = y < vh() + 2 && y > -eh ? 'visible' : 'hidden';
       };
       window.addEventListener('scroll', place, { passive: true });
@@ -679,19 +683,6 @@ export function initTransitions(gsap, ScrollTrigger) {
       const clear = () => { next.style.transform = ''; };
       ScrollTrigger.addEventListener('refreshInit', clear);
       cleanups.push(() => ScrollTrigger.removeEventListener('refreshInit', clear));
-    }
-    if (def.over && def.fadeIn) { // the section fades in while it rises with the scroll (no hold, no hand-over pause)
-      const Tn = (def.T || 150) * (mobile ? 0.8 : 1) / 100; // seam run in screens
-      const a0 = 1 - 1 / Tn, a1 = 1 - 0.15 / Tn;
-      const stops = [0, 0.04, 0.13, 0.27, 0.46, 0.67, 0.86, 1]; // eased feather, so there is one soft edge and no seam or band to see
-      placeFn = (m) => {
-        const o = clamp((m - a0) / (a1 - a0));
-        next.style.opacity = o >= 0.999 ? '' : String(+o.toFixed(3));
-        const f = Math.round(vh() * 0.6 * (1 - clamp((m - a0) / (1 - a0)))); // the feather shrinks away as the section lands
-        const mask = f > 2 ? `linear-gradient(to bottom, ${stops.map((a, i) => `rgba(0,0,0,${a}) ${Math.round(i / (stops.length - 1) * f)}px`).join(',')}, #000 ${f}px)` : '';
-        next.style.webkitMaskImage = mask; next.style.maskImage = mask;
-      };
-      placeFn(0);
     }
     master.set({}, {}, 1);
 
