@@ -2,6 +2,8 @@
    Each seam = tall block + sticky stage that overlaps the last screen of the previous section (the stage fades in over it)
    and lands on the live next section; a GSAP timeline (duration 1) is scrubbed by the scroll through it. */
 import { vh } from './vh.js';
+import { geoOrthographic, geoPath, geoGraticule10 } from 'd3-geo';
+import land from './land.json';
 
 let gsap_set = (el, v) => Object.assign(el.style, {});
 const NS = 'http://www.w3.org/2000/svg';
@@ -311,19 +313,44 @@ function t5({ st, tl, to, ctx, next }) {
     tl.fromTo(c, { x: '30vw' }, { x: `${-(40 + rng() * 80)}vw`, ease: 'none', duration: 1 }, 0);
     clouds.push(c);
   }
-  const merid = 7;
-  let ms = '', ls = '';
-  for (let k = 0; k < merid; k++) ms += `<ellipse class="mer" cx="50" cy="30" rx="22" ry="22" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".22"/>`;
-  [-60, -30, 0, 30, 60].forEach((a) => { const r = (a * Math.PI) / 180, y = 30 + 22 * Math.sin(r), rx = 22 * Math.cos(r); ls += `<line x1="${50 - rx}" y1="${y}" x2="${50 + rx}" y2="${y}" stroke="rgba(255,255,255,.4)" stroke-width=".2"/>`; });
+  // a real globe: the world's coastlines on an orthographic sphere that turns as you scroll (canvas, drawn under the route)
+  const GL = canvasLayer(st, ctx);
+  const proj = geoOrthographic().clipAngle(90).precision(0.6);
+  const gpath = geoPath(proj, GL.g);
+  const grat = geoGraticule10();
+  const state = { th: 0, q: 0 };
+  const drawGlobe = () => {
+    const { g, size } = GL, W = size.w, H = size.h, u = Math.min(W / 100, H / 56);
+    const cx = W / 2, cy = (H - 56 * u) / 2 + 30 * u, R = 22 * u;
+    g.clearRect(0, 0, W, H);
+    proj.translate([cx, cy]).scale(R).rotate([-(state.th * 180) / Math.PI + 20, -22, 0]);
+    // atmosphere
+    const halo = g.createRadialGradient(cx, cy, R * 0.96, cx, cy, R * 1.22);
+    halo.addColorStop(0, 'rgba(140,215,255,.38)'); halo.addColorStop(1, 'rgba(140,215,255,0)');
+    g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, R * 1.22, 0, 6.283); g.fill();
+    // ocean
+    const sea = g.createRadialGradient(cx - R * 0.35, cy - R * 0.4, R * 0.1, cx, cy, R);
+    sea.addColorStop(0, '#2f8fb8'); sea.addColorStop(0.6, '#10638a'); sea.addColorStop(1, '#073a58');
+    g.fillStyle = sea; g.beginPath(); g.arc(cx, cy, R, 0, 6.283); g.fill();
+    g.save(); g.beginPath(); g.arc(cx, cy, R, 0, 6.283); g.clip();
+    g.beginPath(); gpath(grat); g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 0.6; g.stroke();
+    g.beginPath(); gpath(land); g.fillStyle = '#9fd3a0'; g.fill(); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 0.5; g.stroke();
+    // terminator: light from the upper left
+    const sh = g.createRadialGradient(cx - R * 0.45, cy - R * 0.5, R * 0.25, cx, cy, R * 1.05);
+    sh.addColorStop(0, 'rgba(255,255,255,.16)'); sh.addColorStop(0.55, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(2,20,35,.55)');
+    g.fillStyle = sh; g.fillRect(cx - R, cy - R, R * 2, R * 2);
+    g.restore();
+    g.beginPath(); g.arc(cx, cy, R, 0, 6.283); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1; g.stroke();
+  };
+  ctx.redraw = drawGlobe;
   const route = 'M6 47 Q50 -16 94 41';
   const v = svg(`
-    <g class="globe"><circle cx="50" cy="30" r="22" fill="rgba(3,44,66,.38)" stroke="rgba(255,255,255,.65)" stroke-width=".3"/>${ls}${ms}</g>
     <path d="${route}" fill="none" stroke="rgba(254,215,0,.4)" stroke-width=".35" stroke-dasharray=".9 1.3"/>
     <path class="route" d="${route}" fill="none" stroke="#fed700" stroke-width=".55" stroke-linecap="round"/>
     <circle cx="6" cy="47" r="1.1" fill="#fed700"/><circle class="dest" cx="94" cy="41" r="1.1" fill="#fed700"/>
-    <polygon class="plane" points="3,0 -2.6,-2 -1,0 -2.6,2" fill="#ffffff"/>
+    <path class="plane" d="M4.4 0 C4 -.55 3 -.6 2.2 -.6 L-.5 -4.4 L-1.9 -4.4 L-.8 -.7 L-2.9 -.6 L-3.6 -1.9 L-4.6 -1.9 L-4 0 L-4.6 1.9 L-3.6 1.9 L-2.9 .6 L-.8 .7 L-1.9 4.4 L-.5 4.4 L2.2 .6 C3 .6 4 .55 4.4 0 Z" fill="#ffffff" stroke="rgba(3,44,66,.35)" stroke-width=".18"/>
   `, 'layer', st, { viewBox: '0 0 100 56', preserveAspectRatio: 'xMidYMid meet' });
-  const mers = [...v.querySelectorAll('.mer')], route$ = v.querySelector('.route'), plane = v.querySelector('.plane'), dest = v.querySelector('.dest');
+  const route$ = v.querySelector('.route'), plane = v.querySelector('.plane'), dest = v.querySelector('.dest');
   const len = route$.getTotalLength();
   route$.style.strokeDasharray = len; route$.style.strokeDashoffset = len;
 
@@ -361,14 +388,12 @@ function t5({ st, tl, to, ctx, next }) {
     pose();
   };
   ctx.refresh.push(measure);
-  const state = { th: 0, q: 0 };
-  const poseGlobe = () => mers.forEach((m, k) => m.setAttribute('rx', (22 * Math.abs(Math.cos(state.th + (k * Math.PI) / merid))).toFixed(2)));
   const posePlane = () => {
     const a = route$.getPointAtLength(len * state.q), b = route$.getPointAtLength(Math.min(len, len * state.q + 1));
-    plane.setAttribute('transform', `translate(${a.x} ${a.y}) rotate(${(Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI})`);
+    plane.setAttribute('transform', `translate(${a.x} ${a.y}) rotate(${(Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI}) scale(.85)`);
   };
   tl.fromTo(st, { backgroundColor: to.from }, { backgroundColor: to.to, ease: 'none', duration: 0.55 }, 0.05)
-    .to(state, { th: Math.PI * 1.6, ease: 'none', duration: 1, onUpdate: poseGlobe }, 0)
+    .to(state, { th: Math.PI * 1.6, ease: 'none', duration: 1, onUpdate: drawGlobe }, 0)
     .to(state, { q: 1, ease: 'power1.inOut', duration: 0.6, onUpdate: posePlane }, 0.1)
     .fromTo(route$, { strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.6 }, 0.1)
     .fromTo(dest, { scale: 1, svgOrigin: '94 41' }, { scale: 3, svgOrigin: '94 41', yoyo: true, repeat: 1, duration: 0.04 }, 0.7)
@@ -378,9 +403,9 @@ function t5({ st, tl, to, ctx, next }) {
   if (ctx.master) {
     // as the section rises, the world rises with it and the stamp comes down onto the page
     ctx.master.to(S, { g: 1, ease: 'power2.inOut', duration: 0.255, onUpdate: pose, immediateRender: false }, ctx.core + 0.02)
-      .to([v].concat(clouds), { y: '-34vh', opacity: 0, ease: 'power1.in', duration: 0.26, immediateRender: false }, ctx.core);
+      .to([v, GL.c].concat(clouds), { y: '-34vh', opacity: 0, ease: 'power1.in', duration: 0.26, immediateRender: false }, ctx.core);
   }
-  poseGlobe(); posePlane(); measure();
+  drawGlobe(); posePlane(); measure();
   return { ownsBg: true };
 }
 
