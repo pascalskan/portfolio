@@ -55,33 +55,41 @@ function offsetBox(el, root) {
 }
 
 /* ---------------------------------------------------------------- 1 · Hero → About
-   A sheet of paper is torn up the page from below, its edge glowing like a fuse; the sheet is the About page's own paper, so the hand-over is exact. */
+   Same ignition as the contact seam, in the About page's own paper: a hot rim and embers lead a paper-coloured wave up the page, and the wave is the paper the section sits on, so the hand-over is exact. */
 function t1({ st, tl, ctx, to }) {
   const rng = rngFrom(17);
-  const NP = 101, jag = Array.from({ length: NP }, () => rng());
-  const v = svg(`<defs><linearGradient id="t1sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(0,0,0,0)"/><stop offset="1" stop-color="rgba(0,0,0,.5)"/></linearGradient></defs>
-    <path class="sh" fill="url(#t1sh)"/><path class="pp" fill="${to.to}"/><path class="ed" fill="none" stroke="#ff7a45" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`,
-    'layer t1-sheet', st, { viewBox: '0 0 1000 1000', preserveAspectRatio: 'none' });
-  const sh = v.querySelector('.sh'), pp = v.querySelector('.pp'), ed = v.querySelector('.ed');
+  const glow = h('div', 't11-glow', st);
+  const wave = svg(`<path class="b" d="" fill="#ff7a45"/><path class="w" d="" fill="${to.to}"/>`, 't11-fill', st, { viewBox: '0 0 1000 1000', preserveAspectRatio: 'none' });
+  const wp = wave.querySelector('.w'), bp = wave.querySelector('.b');
+  const L = canvasLayer(st, ctx);
+  const N = window.innerWidth <= 720 ? 70 : 150;
+  const em = Array.from({ length: N }, () => ({ x: rng(), v: 0.5 + rng() * 1.1, d: rng() * 0.22, ph: rng() * 6.28, am: 0.01 + rng() * 0.035, r: 0.8 + rng() * 2.6 }));
   const edge = (p) => {
-    const e = eio(clamp((p - 0.04) / 0.66));
-    const base = lerp(1090, -110, e);
-    let top = '';
-    for (let i = 0; i < NP; i++) {
-      const x = i * 10, y = base + (jag[i] - 0.5) * 30 + Math.sin(x * 0.019 + 1.3) * 16 + Math.sin(x * 0.047) * 7;
-      top += (i ? 'L' : 'M') + x + ' ' + y.toFixed(1);
-    }
-    const back = top.replace(/^M/, 'L').split('L').filter(Boolean).map((q) => q.split(' ').map(Number)); // [[x,y],...]
-    pp.setAttribute('d', top + 'L1000 1200L0 1200Z');
-    ed.setAttribute('d', top);
-    sh.setAttribute('d', top + back.slice().reverse().map(([x, y]) => 'L' + x + ' ' + (y - 70).toFixed(1)).join('') + 'Z');
-    ed.style.opacity = e > 0.985 ? 0 : 0.85;
+    const e = eio(clamp((p - 0.12) / 0.8));
+    const base = lerp(1070, -60, e), amp = 22 * (1 - e * 0.5);
+    const line = (b) => { let d = `M0 ${b}`; for (let x = 0; x <= 1000; x += 20) d += `L${x} ${(b + Math.sin(x * 0.012 + p * 12) * amp + Math.sin(x * 0.031 - p * 8) * amp * 0.5).toFixed(1)}`; return d + 'L1000 1100L0 1100Z'; };
+    wp.setAttribute('d', line(base));
+    bp.setAttribute('d', line(base - 34 * (1 - e * 0.6))); // the hot rim sits just ahead of the paper
   };
-  ctx.redraw = () => edge(tl.progress());
-  ctx.update.push(edge);
-  edge(0);
-  tl.set(st, { backgroundColor: to.to }, 0.72);
-  return { ownsBg: true };
+  const draw = (p) => {
+    const { g, size } = L; const W = size.w, H = size.h;
+    g.clearRect(0, 0, W, H);
+    g.globalCompositeOperation = 'lighter';
+    const vis = smooth(0.0, 0.2, p) * (1 - smooth(0.84, 1, p));
+    if (vis > 0) em.forEach((q) => {
+      const y = H * 1.05 - (p * (0.8 + q.v) * 0.9 + q.d * 0.8) * H * 1.15;
+      if (y < -10 || y > H + 10) return;
+      const t = clamp(1 - y / H);
+      const a = vis * (0.9 - t * 0.5);
+      g.fillStyle = `rgba(255,${Math.round(lerp(236, 110, t))},${Math.round(lerp(150, 40, t))},${a})`;
+      g.beginPath(); g.arc(q.x * W + Math.sin(p * 7 + q.ph) * q.am * W, y, q.r * (1.1 - t * 0.5), 0, 6.283); g.fill();
+    });
+    g.globalCompositeOperation = 'source-over';
+  };
+  ctx.redraw = () => { draw(tl.progress()); edge(tl.progress()); };
+  ctx.update.push(draw, edge);
+  edge(0); draw(0);
+  tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1.3, ease: 'sine.inOut', duration: 0.7 }, 0.04).to(glow, { opacity: 0, ease: 'sine.inOut', duration: 0.24 }, 0.76);
 }
 
 /* ---------------------------------------------------------------- 2 · About → Work
@@ -556,7 +564,7 @@ function t11({ st, tl, ctx }) {
 /* ---------------------------------------------------------------- wiring */
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Organising → About', ink: ['#8b8d93', '#5a523f'], T: 160, over: true, riseFade: true, core: 0.9 },
+  { before: '#about', fn: t1, label: 'Organising → About', ink: ['#8b8d93', '#5a523f'], T: 240, land: 0.72, fade: 0.1, lead: [0.22, 0.1], core: 0.78 },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 330, over: true, riseFade: true, core: 0.70 },
