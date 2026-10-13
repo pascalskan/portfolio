@@ -42,9 +42,21 @@
     function show(k, animate) {
       if (wrap) k = (k + cells.length) % cells.length; else k = Math.max(0, Math.min(cells.length - 1, k));
       idx = k;
-      sl.style.transition = animate ? 'transform .6s cubic-bezier(.23,1,.32,1)' : 'none';
-      sl.style.left = '0px';
-      sl.style.transform = 'translateX(' + (-pos(k)) + 'px)';
+      if (wrap) {
+        /* endless loop: every card sits at its circular distance from the selected one, so the strip never runs out */
+        var n = cells.length, stride = cells[1].offsetLeft - cells[0].offsetLeft || cells[0].offsetWidth, mid = (vp.clientWidth - cells[0].offsetWidth) / 2;
+        sl.style.transition = 'none'; sl.style.left = '0px'; sl.style.transform = 'none';
+        cells.forEach(function (c, j) {
+          var d = (((j - k + n / 2) % n) + n) % n - n / 2; if (d === -n / 2 && n % 2 === 0) d = n / 2 * (j > k ? -1 : 1);
+          var x = mid + d * stride, was = parseFloat(c.dataset.x);
+          c.style.transition = (animate && !isNaN(was) && Math.abs(x - was) <= stride * 1.5) ? 'left .6s cubic-bezier(.23,1,.32,1)' : 'none';
+          c.style.left = x + 'px'; c.dataset.x = x;
+        });
+      } else {
+        sl.style.transition = animate ? 'transform .6s cubic-bezier(.23,1,.32,1)' : 'none';
+        sl.style.left = '0px';
+        sl.style.transform = 'translateX(' + (-pos(k)) + 'px)';
+      }
       cells.forEach(function (c, j) { c.classList.toggle('is-selected', j === k); if (j === k) c.removeAttribute('aria-hidden'); else c.setAttribute('aria-hidden', 'true'); });
       dots.forEach(function (d, j) { d.classList.toggle('is-selected', j === k); });
       if (!wrap) { if (prev) prev.disabled = k === 0; if (next) next.disabled = k >= cells.length - 1 || pos(k) >= pos(cells.length - 1); }

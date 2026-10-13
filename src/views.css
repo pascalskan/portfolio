@@ -211,3 +211,5 @@
 @keyframes v-visit-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (hover: hover) and (pointer: fine) { .v-visit-x:hover { border-color: var(--s-ink); } .v-visit-go:hover { filter: brightness(1.08); } }
 .embed-site iframe { background: #fff; }
+
+.v-embed-note { margin: 14px 0 0; font-size: var(--fs-sm, .9rem); line-height: 1.5; color: var(--s-mut); max-width: 70ch; }
