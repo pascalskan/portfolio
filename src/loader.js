@@ -37,11 +37,11 @@ export function runLoader(gsap) {
 
     const state = { p: 0 };
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.from(grey, { x: () => rnd(14), y: () => rnd(14), autoAlpha: 0, scale: 0, transformOrigin: '50% 50%', duration: 0.9, stagger: 0.09 }, 0.1)
+    tl.from(grey, { x: () => rnd(14), y: () => rnd(14), autoAlpha: 0, scale: 0.5, transformOrigin: '50% 50%', duration: 0.9, stagger: 0.09 }, 0.1)
       .to(q('.ld-link.grey'), { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut', stagger: 0.12 }, 0.5)
       .fromTo(q('.ld-bar'), { scaleY: 0 }, { scaleY: 1, transformOrigin: '50% 50%', duration: 0.8, ease: 'power4.inOut' }, 0.9)
       .to(q('.ld-link.hot'), { strokeDashoffset: 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.1 }, 1.4)
-      .from(orange, { scale: 0, transformOrigin: '50% 50%', duration: 0.55, ease: 'back.out(2.4)', stagger: 0.1 }, 1.5)
+      .from(orange, { scale: 0.5, autoAlpha: 0, transformOrigin: '50% 50%', duration: 0.55, ease: 'back.out(2.4)', stagger: 0.1 }, 1.5)
       .to(state, { p: 1, duration: 2.1, ease: 'power1.inOut', onUpdate: () => {
         const v = Math.round(state.p * 100);
         count.textContent = String(v).padStart(3, '0');
@@ -51,8 +51,8 @@ export function runLoader(gsap) {
     Promise.all([ready, new Promise((r) => tl.eventCallback('onComplete', r))]).then(() => {
       document.documentElement.classList.remove('is-loading');
       const out = gsap.timeline({ onComplete: () => { el.remove(); } });
-      out.to(q('.ld-stage'), { scale: 1.12, autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 0)
-        .to(q('.ld-foot'), { autoAlpha: 0, duration: 0.3, ease: 'power1.in' }, 0)
+      out.to(q('.ld-stage'), { scale: 1.12, autoAlpha: 0, duration: 0.55, ease: 'power2.out' }, 0)
+        .to(q('.ld-foot'), { autoAlpha: 0, duration: 0.3, ease: 'power1.out' }, 0)
         .to(el, { yPercent: -100, duration: 1.0, ease: 'power4.inOut' }, 0.3)
         .add(() => resolve(), 0.55); // the hero starts rising while the panel is still lifting
     });

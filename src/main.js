@@ -237,7 +237,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     if (h.closest('.hero') || h.hasAttribute('data-dots')) return;
     if (h.closest('#about')) {
       // About: the heading fades up into place from below, quickly, so the section is readable as soon as it lands
-      gsap.from(h, { y: 44, autoAlpha: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: revealTrigger(h) });
+      gsap.from(h, { y: 44, autoAlpha: 0, duration: 0.8, ease: 'expo.out', scrollTrigger: revealTrigger(h) });
       return;
     }
     const words = splits.get(h);
@@ -249,20 +249,35 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
 
   // Supporting copy + media
   gsap.utils.toArray('[data-reveal]:not(.shot):not(.wipe)').forEach((el) => {
-    gsap.from(el, { y: 32, autoAlpha: 0, duration: el.closest('#about') ? 0.55 : 0.9, ease: 'power3.out', scrollTrigger: revealTrigger(el, 'top 90%') });
+    gsap.from(el, { y: 32, autoAlpha: 0, duration: el.closest('#about') ? 0.55 : 0.9, ease: 'expo.out', scrollTrigger: revealTrigger(el, 'top 90%') });
   });
   // Media frames wipe open from the top edge while the picture settles (explanatory, seen once)
   gsap.utils.toArray('.shot, .wipe').forEach((el) => {
     const img = el.querySelector('img');
     const tl = gsap.timeline({ scrollTrigger: revealTrigger(el) });
     tl.from(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0);
-    if (img) tl.from(img, { scale: 1.06, duration: 1.1, ease: 'power3.out' }, 0);
+    if (img) tl.from(img, { scale: 1.06, duration: 1.1, ease: 'expo.out' }, 0);
   });
   gsap.utils.toArray('[data-stagger]').forEach((group) => {
     if (group.closest('.hero')) return;
     gsap.from(group.children, {
-      y: 28, autoAlpha: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08,
+      y: 28, autoAlpha: 0, duration: 0.8, ease: 'expo.out', stagger: 0.08,
       scrollTrigger: revealTrigger(group),
+    });
+  });
+
+  // Bento tiles: skill counts tick up once as their tile arrives; pointer light follows the cursor (mouse only, CSS-gated)
+  gsap.utils.toArray('.b-n[data-n]').forEach((n) => {
+    const o = { v: 0 }, N = +n.dataset.n;
+    n.textContent = '00';
+    gsap.to(o, { v: N, duration: 0.9, ease: 'expo.out', delay: 0.15, onUpdate: () => { n.textContent = String(Math.round(o.v)).padStart(2, '0'); }, scrollTrigger: revealTrigger(n.closest('.tile'), 'top 88%') });
+  });
+  document.querySelectorAll('.tile').forEach((t) => {
+    t.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const r = t.getBoundingClientRect();
+      t.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+      t.style.setProperty('--my', (e.clientY - r.top) + 'px');
     });
   });
 
