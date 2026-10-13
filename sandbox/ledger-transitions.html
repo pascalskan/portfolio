@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transition sandbox · The Ledger</title>
+<style>
+:root{--navy:#050f2b;--paper:#e3ecdf;--ink:#0d2a1f;--red:#b2463a;--grn:#1c8a52}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#0a0b0d;color:#fff;font-family:system-ui,sans-serif}
+#stage{position:fixed;inset:0;overflow:hidden;background:var(--navy)}
+.ov{position:absolute;inset:0;width:100%;height:100%}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;gap:14px;align-items:center;padding:12px 16px;background:rgba(10,11,13,.88);backdrop-filter:blur(8px);font:500 13px/1 ui-monospace,monospace}
+#bar select,#bar button{font:inherit;background:#1b1d22;color:#fff;border:1px solid #3a3d45;border-radius:8px;padding:8px 12px;cursor:pointer}
+#bar input[type=range]{flex:1;accent-color:#7fd1a3}
+#title{position:absolute;left:6vw;bottom:19vh;font:italic 400 clamp(3rem,10vw,7rem)/.9 Georgia,serif;letter-spacing:-.03em;color:var(--ink);opacity:0}
+#sub{position:absolute;left:6vw;bottom:11vh;max-width:34ch;font:500 15px/1.4 system-ui;color:#2d4a3c;opacity:0}
+.cap{position:absolute;left:24px;bottom:78px;font:500 12px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;opacity:.7;color:#94aad0}
+.rule{position:absolute;left:0;right:0;height:1px;background:rgba(13,42,31,.22);transform-origin:0 50%}
+.margin{position:absolute;top:0;bottom:0;left:9vw;width:5px;border-inline:1px solid rgba(178,70,58,.7);transform-origin:50% 0}
+.node{position:absolute;transform:translate(-50%,-50%);padding:12px 16px;border:1.5px solid currentColor;border-radius:10px;font:600 12px ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;background:rgba(255,255,255,.04)}
+.card{position:absolute;left:50%;top:50%;width:min(420px,84vw);transform:translate(-50%,-50%);background:#f6faf3;color:var(--ink);border-radius:14px;padding:22px 24px;box-shadow:0 40px 80px -24px rgba(0,0,0,.55);font:500 14px/1.5 ui-monospace,monospace}
+.card b{display:block;font:700 11px ui-monospace,monospace;letter-spacing:.2em;color:#5b7d6b;margin-bottom:10px}
+.card .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(13,42,31,.12)}
+.stamp{position:absolute;right:18px;bottom:16px;padding:6px 14px;border:3px solid var(--grn);color:var(--grn);border-radius:6px;font:800 14px ui-monospace,monospace;letter-spacing:.22em;transform:rotate(-8deg)}
+</style></head><body>
+<div id="stage"><div class="cap" id="cap">Balancing → The Ledger</div><div id="sub">An operational-intelligence prototype for field-service businesses.</div><div id="title">The Ledger</div></div>
+<div id="bar">
+ <select id="sel">
+  <option value="rule">A · Ruled page (calm, recommended)</option>
+  <option value="flow">B · Approval flow</option>
+  <option value="beam">C · Balance beam</option>
+  <option value="card">D · Review card approved</option>
+  <option value="entry">E · Double entry (current on the site)</option>
+ </select>
+ <button id="play">▶ Play</button>
+ <input id="rng" type="range" min="0" max="1000" value="0"><span id="pc">0%</span>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+const stage=document.getElementById('stage'),title=document.getElementById('title'),sub=document.getElementById('sub');
+const NAVY='#050f2b',PAPER='#e3ecdf',clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const keep=['cap','title','sub'];
+function clear(){[...stage.children].forEach(c=>{if(!keep.includes(c.id))c.remove()});gsap.set([title,sub],{opacity:0,y:0});stage.style.background=NAVY}
+function el(tag,cls,html,parent=stage){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;parent.insertBefore(e,document.getElementById('cap'));return e}
+function finish(t,at){t.fromTo(title,{opacity:0,y:24},{opacity:1,y:0,duration:.12,ease:'power3.out'},at).fromTo(sub,{opacity:0},{opacity:1,duration:.1},at+.05)}
+const bgTo=(t,at,dur)=>t.fromTo(stage,{backgroundColor:NAVY},{backgroundColor:PAPER,duration:dur,ease:'none'},at);
+
+/* A · the page is ruled line by line, top to bottom; behind each rule the page turns to paper, margin line drawn last */
+function A(){
+ const n=Math.ceil(innerHeight/44)+1;const paper=el('div','ov','');paper.style.cssText='background:'+PAPER+';clip-path:inset(0 0 100% 0)';
+ const rules=[];for(let i=0;i<n;i++){const r=el('div','rule');r.style.top=(i*44+22)+'px';rules.push(r)}
+ const m=el('div','margin');
+ const t=gsap.timeline({paused:true});
+ t.to(paper,{clipPath:'inset(0 0 0% 0)',duration:.62,ease:'power2.inOut'},.06);
+ rules.forEach((r,i)=>t.fromTo(r,{scaleX:0},{scaleX:1,duration:.16,ease:'power3.out'},.06+(i/n)*.52));
+ t.fromTo(m,{scaleY:0},{scaleY:1,duration:.22,ease:'power2.inOut'},.62).to(stage,{backgroundColor:PAPER,duration:.02},.7);
+ finish(t,.84);return t}
+
+/* B · flow of the real product: Operational data → Review Centre → Approval → Financial records */
+function B(){
+ const labels=['Operational data','Review Centre','Approval','Financial records'];
+ const NS='http://www.w3.org/2000/svg';const v=document.createElementNS(NS,'svg');v.setAttribute('class','ov');v.setAttribute('viewBox','0 0 100 56');v.setAttribute('preserveAspectRatio','none');
+ v.innerHTML='<path id="ln" d="M12 28 L88 28" stroke="#94aad0" stroke-width=".35" stroke-linecap="round" fill="none" vector-effect="non-scaling-stroke" style="stroke-width:2px"/>';stage.insertBefore(v,document.getElementById('cap'));
+ const ln=v.querySelector('#ln'),L=ln.getTotalLength();ln.style.strokeDasharray=L;ln.style.strokeDashoffset=L;
+ const nodes=labels.map((l,i)=>{const e=el('div','node',l);e.style.left=(12+i*25.3)+'%';e.style.top='50%';e.style.color='#94aad0';return e});
+ const t=gsap.timeline({paused:true});
+ t.fromTo(ln,{strokeDashoffset:L},{strokeDashoffset:0,duration:.5,ease:'power1.inOut'},.1);
+ nodes.forEach((n,i)=>t.fromTo(n,{opacity:0,scale:.85},{opacity:1,scale:1,duration:.1,ease:'power2.out'},.1+i*.14).to(n,{color:'#1c8a52',borderColor:'#1c8a52',duration:.1},.3+i*.14));
+ bgTo(t,.42,.3);t.to(nodes,{color:'#0d2a1f',borderColor:'#0d2a1f',duration:.3,ease:'none'},.42).to(ln,{stroke:'#0d2a1f',duration:.3},.42)
+  .to([v,...nodes],{opacity:0,y:-30,duration:.2,ease:'power1.in'},.78);
+ finish(t,.86);return t}
+
+/* C · balance beam tilts, hunts, and settles level */
+function C(){
+ const NS='http://www.w3.org/2000/svg';const v=document.createElementNS(NS,'svg');v.setAttribute('class','ov');v.setAttribute('viewBox','0 0 100 56');v.setAttribute('preserveAspectRatio','xMidYMid meet');
+ v.innerHTML='<g stroke="#94aad0" fill="none" stroke-width=".5" stroke-linecap="round" id="bal"><path d="M50 14 V44 M40 45 H60"/><g id="beam"><path d="M22 18 H78"/><path d="M22 18 L16 30 M22 18 L28 30 M78 18 L72 30 M78 18 L84 30"/><path d="M14 30 H30 Q22 36 14 30Z M70 30 H86 Q78 36 70 30Z" fill="rgba(148,170,208,.25)"/><circle cx="50" cy="18" r="1.4" fill="#94aad0"/></g></g>';
+ stage.insertBefore(v,document.getElementById('cap'));
+ const beam=v.querySelector('#beam'),bal=v.querySelector('#bal');const o={a:-14};const pose=()=>beam.setAttribute('transform','rotate('+o.a+' 50 18)');pose();
+ const t=gsap.timeline({paused:true});
+ t.fromTo(v,{opacity:0},{opacity:1,duration:.12},0).to(o,{a:9,duration:.2,ease:'sine.inOut',onUpdate:pose},.1).to(o,{a:-5,duration:.18,ease:'sine.inOut',onUpdate:pose},.3).to(o,{a:2,duration:.14,ease:'sine.inOut',onUpdate:pose},.48).to(o,{a:0,duration:.1,ease:'sine.out',onUpdate:pose},.62);
+ bgTo(t,.56,.26);t.to(bal,{stroke:'#0d2a1f',duration:.26,ease:'none'},.56).to(v,{opacity:0,y:-24,duration:.18,ease:'power1.in'},.8);
+ finish(t,.86);return t}
+
+/* D · one worker submission card is reviewed and approved, then the page becomes paper */
+function D(){
+ const c=el('div','card','<b>REVIEW CENTRE · SUBMISSION</b><div class="row"><span>Job 4417 · Boiler service</span><span>£ 184.00</span></div><div class="row"><span>Parts</span><span>£ 36.50</span></div><div class="row"><span>Labour</span><span>£ 147.50</span></div><div class="stamp" style="opacity:0">APPROVED</div>');
+ const s=c.querySelector('.stamp');
+ const t=gsap.timeline({paused:true});
+ t.fromTo(c,{y:'80vh',rotation:3,xPercent:-50,yPercent:-50},{y:0,rotation:-1,duration:.28,ease:'power3.out'},.04)
+  .fromTo(s,{opacity:0,scale:1.8},{opacity:1,scale:1,duration:.07,ease:'power3.in'},.42)
+  .to(c,{scale:1.04,duration:.05,yoyo:true,repeat:1},.5);
+ bgTo(t,.5,.3);
+ t.to(c,{y:'-90vh',rotation:2,duration:.26,ease:'power2.in'},.68);
+ finish(t,.86);return t}
+
+/* E · what is on the site now */
+function E(){
+ const rows=[['4,388.14','3,985.90'],['870.52','1,476.43'],['472.28','103.21'],['4,204.99','5,102.32'],['3,348.91','4,388.99'],['2,616.70','4,368.81']];
+ const tot='23,851.98';const b=el('div','card','<b>DEBIT · CREDIT</b>'+rows.map(r=>'<div class="row"><span>£ '+r[0]+'</span><span>£ '+r[1]+'</span></div>').join('')+'<div class="row"><b style="margin:0">TOTAL</b><span>£ '+tot+'</span></div><div class="stamp" style="opacity:0;color:#1c8a52">BALANCED</div>');
+ const s=b.querySelector('.stamp'),rowsEl=[...b.querySelectorAll('.row')];
+ const t=gsap.timeline({paused:true});
+ t.fromTo(b,{opacity:0,xPercent:-50,yPercent:-40},{opacity:1,yPercent:-50,duration:.15},.04);
+ rowsEl.forEach((r,i)=>t.fromTo(r,{opacity:0,y:8},{opacity:1,y:0,duration:.08},.1+i*.06));
+ t.fromTo(s,{opacity:0,scale:1.6},{opacity:1,scale:1,duration:.08,ease:'power3.in'},.62);bgTo(t,.4,.3);t.to(b,{opacity:0,y:-30,duration:.2},.82);
+ finish(t,.88);return t}
+
+const V={rule:A,flow:B,beam:C,card:D,entry:E};let tl;
+const sel=document.getElementById('sel'),rng=document.getElementById('rng'),pc=document.getElementById('pc'),play=document.getElementById('play');
+function load(){clear();tl=V[sel.value]();set(0)}
+function set(p){tl.progress(p);rng.value=p*1000;pc.textContent=Math.round(p*100)+'%'}
+sel.onchange=load;rng.oninput=()=>{set(rng.value/1000)};
+let raf;play.onclick=()=>{cancelAnimationFrame(raf);const t0=performance.now(),f=rng.value/1000>.98?0:rng.value/1000;const step=n=>{const p=clamp(f+(n-t0)/6000);set(p);if(p<1)raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)};
+addEventListener('wheel',e=>{set(clamp(rng.value/1000+e.deltaY/3000))},{passive:true});
+addEventListener('resize',load);
+load();
+</script></body></html>
