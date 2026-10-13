@@ -39,12 +39,13 @@
       if (!wrap) { var last = cells[cells.length - 1]; x = Math.max(0, Math.min(x, last.offsetLeft + last.offsetWidth - vp.clientWidth)); }
       return x;
     }
+    var stride = Math.abs(cells[1].offsetLeft - cells[0].offsetLeft) || cells[0].offsetWidth;
     function show(k, animate) {
       if (wrap) k = (k + cells.length) % cells.length; else k = Math.max(0, Math.min(cells.length - 1, k));
       idx = k;
       if (wrap) {
         /* endless loop: every card sits at its circular distance from the selected one, so the strip never runs out */
-        var n = cells.length, stride = cells[1].offsetLeft - cells[0].offsetLeft || cells[0].offsetWidth, mid = (vp.clientWidth - cells[0].offsetWidth) / 2;
+        var n = cells.length, mid = (vp.clientWidth - cells[0].offsetWidth) / 2;
         sl.style.transition = 'none'; sl.style.left = '0px'; sl.style.transform = 'none';
         cells.forEach(function (c, j) {
           var d = (((j - k + n / 2) % n) + n) % n - n / 2; if (d === -n / 2 && n % 2 === 0) d = n / 2 * (j > k ? -1 : 1);
