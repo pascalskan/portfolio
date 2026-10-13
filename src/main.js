@@ -157,6 +157,9 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
 
   // Scroll transitions between sections (DOM is inserted before any other ScrollTrigger is measured)
   cleanups.push(initTransitions(gsap, ScrollTrigger));
+  // decode the big images in the last sections while the browser is idle, so they do not have to be decoded mid-scroll (that was a visible hitch on phones)
+  const warm = () => ['media/powerlifting-poster.jpg', 'media/lifter.webp'].forEach((src) => { const im = new Image(); im.decoding = 'async'; im.src = src; if (im.decode) im.decode().catch(() => {}); });
+  (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(warm, { timeout: 4000 });
 
   // The scrollbar comes and goes (loader, case studies and the 404 pause scrolling) and that changes the page width without a window resize.
   // Every transition copies live text positions, so re-measure whenever the usable width changes (else the copy sits a few px off and snaps at hand-over).

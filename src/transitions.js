@@ -34,7 +34,7 @@ function canvasLayer(st, ctx) {
   const g = c.getContext('2d');
   const size = { w: 1, h: 1, dpr: 1 };
   const fit = () => {
-    size.dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    size.dpr = window.innerWidth <= 720 ? 1 : Math.min(window.devicePixelRatio || 1, 1.75); // phones: soft particles do not need the pixels, and a full-screen high-density canvas is what made them hitch
     size.w = st.clientWidth; size.h = st.clientHeight;
     c.width = Math.round(size.w * size.dpr); c.height = Math.round(size.h * size.dpr);
     g.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
@@ -575,7 +575,7 @@ function t11({ st, tl, ctx }) {
   const wave = svg('<path class="w" d="" fill="#ff7a45"/>', 't11-fill', st, { viewBox: '0 0 1000 1000', preserveAspectRatio: 'none' });
   const wp = wave.querySelector('.w');
   const L = canvasLayer(st, ctx);
-  const N = 150;
+  const N = window.innerWidth <= 720 ? 70 : 150;
   const em = Array.from({ length: N }, () => ({ x: rng(), v: 0.5 + rng() * 1.1, d: rng() * 0.22, ph: rng() * 6.28, am: 0.01 + rng() * 0.035, r: 0.8 + rng() * 2.6 }));
   const edge = (p) => {
     const e = eio(clamp((p - 0.12) / 0.8));
@@ -705,7 +705,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     tl.set({}, {}, span);
 
     master.fromTo(capEl, { color: def.ink[0] }, { color: def.ink[1], duration: 0.12, ease: 'none' }, 0.4)
-      .fromTo(st, { opacity: 0 }, { opacity: 1, ease: 'none', duration: lead[1] }, lead[0]);
+      .fromTo(st, { opacity: 0.001 }, { opacity: 1, ease: 'none', duration: lead[1] }, lead[0]); // 0.001, not 0: the stage is painted before it is needed, so it never has to be rasterised mid-scroll
     master.fromTo(back, { opacity: 1 }, { opacity: 0, ease: 'none', duration: 0.004 }, Math.min(lead[0] + lead[1] + 0.01, def.over ? 1 : (def.land || 0.93) - 0.02));
     if (!def.over) {
       const land = def.land || 0.93, fade = Math.min(def.fade || 0.07, 0.97 - land);
