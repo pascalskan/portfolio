@@ -32,6 +32,7 @@
 /* ---------- 01 About: paper / terracotta, editorial serif ---------- */
 .t-paper { --s-bg: #ece4d3; --s-ink: #1d1a14; --s-mut: #5a523f; --s-acc: #a63a15; --s-line: rgba(29,26,20,.22); }
 .t-paper .display-m { font-family: var(--serif); font-weight: 400; font-size: clamp(3rem, 8.4vw, 8.6rem); letter-spacing: -.04em; line-height: .9; margin-bottom: 0; }
+#about { padding-top: clamp(84px, 11vh, 104px); }
 .about-hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 5vw, 80px); align-items: end; }
 .about-cols { margin-top: clamp(28px, 4vw, 56px); display: grid; grid-template-columns: 1fr 1fr; gap: clamp(20px, 4vw, 56px); }
 .about-cols p { margin: 0; line-height: 1.6; font-size: 1.05rem; max-width: none; }
@@ -231,7 +232,8 @@
   .scene-head { position: static; margin-bottom: 32px; }
   .t-road .shot { position: relative; top: auto; }
   .bau-art { justify-self: start; max-width: 240px; }
-  .t-paper .portrait { max-width: 420px; }
+  .t-paper .portrait { max-width: none; }
+  .t-paper .portrait img { aspect-ratio: 4 / 3; object-position: 50% 14%; }
   .index-list a { grid-template-columns: 40px 1fr; }
   .index-list .m { grid-column: 2; text-align: left; }
   .flow { grid-template-columns: repeat(3, 1fr); row-gap: 28px; }
@@ -274,4 +276,4 @@
 @media (hover: hover) and (pointer: fine) { .index-list a:hover .t::after { opacity: 1; } }
 
 /* mobile: leave room under the fixed header so a landed section heading is never clipped */
-@media (max-width: 720px) { .scene { padding-top: 124px; } }
+@media (max-width: 720px) { .scene { padding-top: 124px; } #about { padding-top: 96px; } }
