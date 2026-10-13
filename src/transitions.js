@@ -55,41 +55,32 @@ function offsetBox(el, root) {
 }
 
 /* ---------------------------------------------------------------- 1 · Hero → About
-   Same ignition as the contact seam, in the About page's own paper: a hot rim and embers lead a paper-coloured wave up the page, and the wave is the paper the section sits on, so the hand-over is exact. */
-function t1({ st, tl, ctx, to }) {
+   A quiet ignition: a low glow and a scatter of embers drift up the dark page while the About section itself rises over them, fading in as it climbs. */
+function t1({ st, tl, ctx }) {
   const rng = rngFrom(17);
   const glow = h('div', 't11-glow', st);
-  const wave = svg(`<path class="b" d="" fill="#ff7a45"/><path class="w" d="" fill="${to.to}"/>`, 't11-fill', st, { viewBox: '0 0 1000 1000', preserveAspectRatio: 'none' });
-  const wp = wave.querySelector('.w'), bp = wave.querySelector('.b');
   const L = canvasLayer(st, ctx);
-  const N = window.innerWidth <= 720 ? 70 : 150;
-  const em = Array.from({ length: N }, () => ({ x: rng(), v: 0.5 + rng() * 1.1, d: rng() * 0.22, ph: rng() * 6.28, am: 0.01 + rng() * 0.035, r: 0.8 + rng() * 2.6 }));
-  const edge = (p) => {
-    const e = eio(clamp((p - 0.12) / 0.8));
-    const base = lerp(1070, -60, e), amp = 22 * (1 - e * 0.5);
-    const line = (b) => { let d = `M0 ${b}`; for (let x = 0; x <= 1000; x += 20) d += `L${x} ${(b + Math.sin(x * 0.012 + p * 12) * amp + Math.sin(x * 0.031 - p * 8) * amp * 0.5).toFixed(1)}`; return d + 'L1000 1100L0 1100Z'; };
-    wp.setAttribute('d', line(base));
-    bp.setAttribute('d', line(base - 34 * (1 - e * 0.6))); // the hot rim sits just ahead of the paper
-  };
+  const N = window.innerWidth <= 720 ? 36 : 80;
+  const em = Array.from({ length: N }, () => ({ x: rng(), v: 0.5 + rng() * 1.1, d: rng() * 0.22, ph: rng() * 6.28, am: 0.01 + rng() * 0.035, r: 0.7 + rng() * 1.8 }));
   const draw = (p) => {
     const { g, size } = L; const W = size.w, H = size.h;
     g.clearRect(0, 0, W, H);
     g.globalCompositeOperation = 'lighter';
-    const vis = smooth(0.0, 0.2, p) * (1 - smooth(0.84, 1, p));
+    const vis = smooth(0.0, 0.2, p) * (1 - smooth(0.8, 1, p));
     if (vis > 0) em.forEach((q) => {
       const y = H * 1.05 - (p * (0.8 + q.v) * 0.9 + q.d * 0.8) * H * 1.15;
       if (y < -10 || y > H + 10) return;
       const t = clamp(1 - y / H);
-      const a = vis * (0.9 - t * 0.5);
-      g.fillStyle = `rgba(255,${Math.round(lerp(236, 110, t))},${Math.round(lerp(150, 40, t))},${a})`;
+      const a = vis * (0.65 - t * 0.4);
+      g.fillStyle = `rgba(255,${Math.round(lerp(220, 110, t))},${Math.round(lerp(140, 40, t))},${a})`;
       g.beginPath(); g.arc(q.x * W + Math.sin(p * 7 + q.ph) * q.am * W, y, q.r * (1.1 - t * 0.5), 0, 6.283); g.fill();
     });
     g.globalCompositeOperation = 'source-over';
   };
-  ctx.redraw = () => { draw(tl.progress()); edge(tl.progress()); };
-  ctx.update.push(draw, edge);
-  edge(0); draw(0);
-  tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1.3, ease: 'sine.inOut', duration: 0.7 }, 0.04).to(glow, { opacity: 0, ease: 'sine.inOut', duration: 0.24 }, 0.76);
+  ctx.redraw = () => draw(tl.progress());
+  ctx.update.push(draw);
+  draw(0);
+  tl.fromTo(glow, { opacity: 0, scale: 0.5 }, { opacity: 0.5, scale: 1.25, ease: 'sine.inOut', duration: 0.6 }, 0.04).to(glow, { opacity: 0, ease: 'sine.inOut', duration: 0.3 }, 0.7);
 }
 
 /* ---------------------------------------------------------------- 2 · About → Work
@@ -564,7 +555,7 @@ function t11({ st, tl, ctx }) {
 /* ---------------------------------------------------------------- wiring */
 // T: scroll length in vh, land: where the stage starts to give way to the live section, fade: how long that takes, over: the live section rises over the stage instead
 const DEFS = [
-  { before: '#about', fn: t1, label: 'Organising → About', ink: ['#8b8d93', '#5a523f'], T: 240, land: 0.72, fade: 0.1, lead: [0.22, 0.1], core: 0.78 },
+  { before: '#about', fn: t1, label: 'Organising → About', ink: ['#8b8d93', '#5a523f'], T: 170, over: true, riseFade: true, fadeIn: true, lead: [0.16, 0.1], core: 0.7 },
   { before: '#work', fn: t2, label: 'Indexing → Work', ink: ['#1d1a14', '#f2efe8'], T: 105, fade: 0.1, lead: [0.26, 0.1], span: 0.58, core: 0.84, land: 0.86 },
   { before: '#forecasting', fn: t3, label: 'Fitting → Forecasting', ink: ['#9a9aa2', '#94aad0'], T: 290, over: true },
   { before: '#ledger', fn: t4, label: 'Balancing → The Ledger', ink: ['#94aad0', '#0d2a1f'], T: 330, over: true, riseFade: true, core: 0.70 },
@@ -686,6 +677,13 @@ export function initTransitions(gsap, ScrollTrigger) {
       const clear = () => { next.style.transform = ''; };
       ScrollTrigger.addEventListener('refreshInit', clear);
       cleanups.push(() => ScrollTrigger.removeEventListener('refreshInit', clear));
+    }
+    if (def.over && def.fadeIn) { // the section fades in while it rises with the scroll (no hold, no hand-over pause)
+      const Tn = (def.T || 150) * (mobile ? 0.8 : 1) / 100; // seam run in screens
+      const a0 = 1 - 1 / Tn, a1 = 1 - 0.35 / Tn;
+      const edgeEl = st.querySelector('.seam-edge');
+      placeFn = (m) => { const o = clamp((m - a0) / (a1 - a0)); next.style.opacity = o >= 0.999 ? '' : String(+o.toFixed(3)); if (edgeEl) edgeEl.style.opacity = String(+o.toFixed(3)); };
+      placeFn(0);
     }
     master.set({}, {}, 1);
 
