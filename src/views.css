@@ -20,6 +20,7 @@
 .v-wrap { width: min(1240px, 100% - var(--gut) * 2); margin: 0 auto; padding: clamp(20px, 3.5vw, 40px) 0 clamp(64px, 8vw, 120px); }
 .v-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 20; margin-top: calc(clamp(20px, 3.5vw, 40px) * -1); padding: clamp(12px, 2vw, 20px) 0; background: linear-gradient(var(--s-bg) 55%, transparent); pointer-events: none; }
 .v-top > * { pointer-events: auto; }
+@media (max-width: 720px) { .v-top { background: var(--s-bg); padding: 10px 0; box-shadow: 0 1px 0 var(--s-line); } }
 .v-back { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px 10px 14px; border: 1px solid var(--s-line); border-radius: var(--r-pill); background: var(--s-bg); color: inherit; font: 500 .9rem var(--display); cursor: pointer; transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s var(--ease); }
 .v-back:active { transform: scale(.97); }
 .v-back svg { transition: transform .16s var(--ease); }

@@ -690,7 +690,7 @@ export function initTransitions(gsap, ScrollTrigger) {
     let placeFn = null;
     const master = gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: seam, start: 'top top', end: () => 'bottom bottom', scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); progFns.forEach((f) => f(self.progress)); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; progFns.forEach((f) => f(1)); }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); progFns.forEach((f) => f(0)); } },
+      scrollTrigger: { trigger: seam, start: 'top top', end: () => Math.round(seam.getBoundingClientRect().bottom + window.scrollY - vh()), scrub: true, invalidateOnRefresh: true, onUpdate: (self) => { if (placeFn) placeFn(self.progress); progFns.forEach((f) => f(self.progress)); }, onLeave: () => { if (placeFn) placeFn(1); st.style.visibility = 'hidden'; progFns.forEach((f) => f(1)); }, onEnterBack: () => { st.style.visibility = ''; }, onLeaveBack: () => { if (placeFn) placeFn(0); progFns.forEach((f) => f(0)); } },
     });
     const tl = gsap.timeline({ defaults: { ease: 'none' } });
     const lead = def.lead || [0.18, 0.1];
@@ -714,11 +714,15 @@ export function initTransitions(gsap, ScrollTrigger) {
       // (the backing is removed below for every seam)
       // while the stage gives way, hold the live section at its landing position (the stage is opaque before that), so the two line up exactly
       const m0 = Math.max(0.5, land - 0.06);
+      const prevScene = seam.previousElementSibling, prevZ = prevScene && prevScene.style.zIndex;
       placeFn = (m) => {
         // measured from the seam itself, so the hold is exact whatever the scroll smoothing is doing
         const nat = seam.getBoundingClientRect().bottom - vh();
         const ny = Math.round(nat); // whole pixels only, so text never sits on a fractional offset (that is what shimmered)
         next.style.transform = m >= m0 && m < 0.999 && ny > 0 ? `translate3d(0, ${-ny}px, 0)` : '';
+        // the section before the seam can be raised above this one (it rose over its own seam); once the stage is opaque and handing over,
+        // this section must paint over the overlapped end of that one, or a strip of it shows above the heading after landing
+        if (prevZ) next.style.zIndex = m >= m0 ? prevZ : '';
       };
       // promote the landing section to its own layer well before the hand-over, so the browser has already painted it
       // (creating a huge layer in the middle of the scroll is what made the end of the transition hitch)

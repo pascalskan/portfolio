@@ -186,7 +186,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     // A section that follows a transition is landed on just past the end of that transition (not on the section's own top, which sits
     // a little short of it), so the stage has fully handed over and its text cannot show through on top of the live section.
     const seam = target !== 0 && target.previousElementSibling && target.previousElementSibling.classList.contains('seam') ? target.previousElementSibling : null;
-    const y = seam ? Math.round(seam.getBoundingClientRect().bottom + window.scrollY - vh() + Math.max(32, vh() * 0.05)) : target;
+    const y = seam ? Math.round(seam.getBoundingClientRect().bottom + window.scrollY - vh() + (window.innerWidth <= 720 ? 20 : Math.max(32, vh() * 0.05))) : target;
     lenis.scrollTo(y, { offset: 0, duration: 1.4 });
     if (hash !== '#top') history.replaceState(null, '', hash);
   };

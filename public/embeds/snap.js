@@ -16,6 +16,7 @@
   }, true);
   document.addEventListener('submit', function (e) { e.preventDefault(); tell(live, ''); }, true);
 
+  function narrow() { return window.innerWidth < 768; }
   function opt(el, key) {
     for (var n = el; n && n.nodeType === 1; n = n.parentElement) {
       for (var i = 0; i < n.attributes.length; i++) {
@@ -39,18 +40,20 @@
       if (!wrap) { var last = cells[cells.length - 1]; x = Math.max(0, Math.min(x, last.offsetLeft + last.offsetWidth - vp.clientWidth)); }
       return x;
     }
-    var stride = Math.abs(cells[1].offsetLeft - cells[0].offsetLeft) || cells[0].offsetWidth;
+    var stride0 = Math.abs(cells[1].offsetLeft - cells[0].offsetLeft) || cells[0].offsetWidth;
+    /* on a phone every card is the full width of the strip, whatever the saved desktop layout was */
+    function stride() { return narrow() ? cells[0].offsetWidth : stride0; }
     function show(k, animate) {
       if (wrap) k = (k + cells.length) % cells.length; else k = Math.max(0, Math.min(cells.length - 1, k));
       idx = k;
-      if (wrap) {
+      if (wrap || narrow()) {
         /* endless loop: every card sits at its circular distance from the selected one, so the strip never runs out */
         var n = cells.length, mid = (vp.clientWidth - cells[0].offsetWidth) / 2;
         sl.style.transition = 'none'; sl.style.left = '0px'; sl.style.transform = 'none';
         cells.forEach(function (c, j) {
-          var d = (((j - k + n / 2) % n) + n) % n - n / 2; if (d === -n / 2 && n % 2 === 0) d = n / 2 * (j > k ? -1 : 1);
-          var x = mid + d * stride, was = parseFloat(c.dataset.x);
-          c.style.transition = (animate && !isNaN(was) && Math.abs(x - was) <= stride * 1.5) ? 'left .6s cubic-bezier(.23,1,.32,1)' : 'none';
+          var d = j - k; if (wrap) { d = (((j - k + n / 2) % n) + n) % n - n / 2; if (d === -n / 2 && n % 2 === 0) d = n / 2 * (j > k ? -1 : 1); }
+          var x = mid + d * stride(), was = parseFloat(c.dataset.x);
+          c.style.transition = (animate && !isNaN(was) && Math.abs(x - was) <= stride() * 1.5) ? 'left .6s cubic-bezier(.23,1,.32,1)' : 'none';
           c.style.left = x + 'px'; c.dataset.x = x;
         });
       } else {
@@ -58,6 +61,7 @@
         sl.style.left = '0px';
         sl.style.transform = 'translateX(' + (-pos(k)) + 'px)';
       }
+      if (narrow()) { var hh = 0; cells.forEach(function (c) { hh = Math.max(hh, c.offsetHeight); }); if (hh) vp.style.setProperty('height', hh + 'px', 'important'); }
       cells.forEach(function (c, j) { c.classList.toggle('is-selected', j === k); if (j === k) c.removeAttribute('aria-hidden'); else c.setAttribute('aria-hidden', 'true'); });
       dots.forEach(function (d, j) { d.classList.toggle('is-selected', j === k); });
       if (!wrap) { if (prev) prev.disabled = k === 0; if (next) next.disabled = k >= cells.length - 1 || pos(k) >= pos(cells.length - 1); }
@@ -66,7 +70,15 @@
     if (next) next.addEventListener('click', function (e) { e.preventDefault(); show(idx + 1, true); });
     dots.forEach(function (d, j) { d.addEventListener('click', function (e) { e.preventDefault(); show(j, true); }); });
     f.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') show(idx - 1, true); else if (e.key === 'ArrowRight') show(idx + 1, true); });
+    var sx = 0, sy = 0, tr = false;
+    vp.addEventListener('touchstart', function (e) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; tr = e.touches.length === 1; }, { passive: true });
+    vp.addEventListener('touchend', function (e) {
+      if (!tr) return; tr = false;
+      var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) show(idx + (dx < 0 ? 1 : -1), true);
+    }, { passive: true });
     window.addEventListener('resize', function () { show(idx, false); });
+    window.addEventListener('load', function () { show(idx, false); });
     show(idx, false);
   });
 })();

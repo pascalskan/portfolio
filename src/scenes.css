@@ -226,7 +226,7 @@
 @media (max-width: 960px) {
   .about-grid, .lab-top, .road-grid, .bau-head, .beyond-grid, .split2, .travel-body, .case-cols, .mini-grid { grid-template-columns: 1fr; }
   .scene-head { position: static; margin-bottom: 32px; }
-  .t-road .shot { position: static; }
+  .t-road .shot { position: relative; top: auto; }
   .bau-art { justify-self: start; max-width: 240px; }
   .t-paper .portrait { max-width: 460px; }
   .index-list a { grid-template-columns: 40px 1fr; }
@@ -267,3 +267,6 @@
 /* work index: affordance that each row opens a case study */
 .index-list .t::after { content: "\2197"; margin-left: .45em; font-size: .55em; vertical-align: .55em; opacity: .4; transition: opacity .16s ease; }
 @media (hover: hover) and (pointer: fine) { .index-list a:hover .t::after { opacity: 1; } }
+
+/* mobile: leave room under the fixed header so a landed section heading is never clipped */
+@media (max-width: 720px) { .scene { padding-top: 124px; } }
