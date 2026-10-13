@@ -65,13 +65,6 @@ export const CASES = {
       ] },
     ],
     shot: { mobile: 'shots/ledger-worker-mobile.webp', src: 'shots/ledger-review-centre.webp', alt: 'Screenshot of The Ledger Review Centre, shown with invented demo data' },
-    gallery: [
-      { src: 'shots/ledger-1-review.webp', alt: 'Review Operations Centre showing the executive briefing and approval health', cap: 'Review Centre: derives pending approvals, financial exposure and SLA breaches from the work submitted.' },
-      { src: 'shots/ledger-2-approve.webp', alt: "Reject dialog on a job's pending submission, requiring a written reason", cap: 'Approval gate: a rejection must carry a reason, and nothing becomes a financial record until work is approved.' },
-      { src: 'shots/ledger-3-schedule.webp', alt: 'Operations schedule for a week with utilisation and contribution figures', cap: 'Schedule: workforce utilisation and net contribution are calculated from the jobs placed on the week.' },
-      { src: 'shots/ledger-4-worker.webp', alt: 'Two phone screens of the worker app: home and jobs', cap: 'Worker app: its own mobile navigation, built around an offline queue that syncs when the signal returns.' },
-      { src: 'shots/ledger-5-portal.webp', alt: 'Client portal dashboard showing projects, sites and recent activity', cap: "Client portal: a separate read-only app, scoped to one client's sites, jobs and invoices." },
-    ],
     stack: ['TypeScript', 'React 19', 'Vite', 'Tailwind', 'Zustand', 'TanStack Query', 'Playwright', 'axe-core'],
     links: [{ label: 'Repository', href: 'https://github.com/pascalskan/The-Ledger' }],
   },
