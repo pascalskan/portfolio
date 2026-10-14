@@ -10,7 +10,6 @@ import './views.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis'; // the sole smooth-scroll engine (Locomotive Scroll is deliberately not installed)
-import { createHeroScene } from './hero-scene.js';
 import { icons } from './icons.js';
 import { initTransitions, revealTrigger } from './transitions.js';
 import { runLoader } from './loader.js';
@@ -37,10 +36,12 @@ const yr = document.getElementById('year');
 if (yr) yr.textContent = new Date().getFullYear();
 
 /* ---------- Mobile nav ---------- */
+const siteHeader = document.querySelector('.site-header');
 const toggle = document.querySelector('.nav-toggle');
 const nav = document.getElementById('nav');
 function setNav(open) {
   nav.classList.toggle('open', open);
+  siteHeader.classList.toggle('nav-open', open);
   toggle.setAttribute('aria-expanded', String(open));
   toggle.querySelector('.nav-toggle-label').textContent = open ? 'Close' : 'Menu';
 }
@@ -101,22 +102,6 @@ const byId = Object.fromEntries(navLinks.map((a) => [a.getAttribute('href').slic
 function setActive(id) {
   navLinks.forEach((a) => { a.classList.remove('active'); a.removeAttribute('aria-current'); });
   if (byId[id]) { byId[id].classList.add('active'); byId[id].setAttribute('aria-current', 'location'); }
-}
-
-/* ---------- Hero WebGL scene (optional; static poster otherwise) ---------- */
-const stage = document.querySelector('.hero-stage');
-let scene = null;
-{
-  scene = createHeroScene({
-    stage,
-    canvas: stage.querySelector('.hero-canvas'),
-    onFail: () => { stage.classList.remove('gl-on'); },
-    variant: 'network',
-  });
-  if (scene) {
-    stage.classList.add('gl-on');
-    cleanups.push(scene.destroy);
-  }
 }
 
 /* ---------- Video: optional YouTube (privacy-enhanced) facade; falls back to the local file ---------- */
@@ -207,6 +192,7 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     const y = window.scrollY;
     if (y === lastY) return;
     lastY = y;
+    siteHeader.classList.toggle('is-scrolled', y > 40);
     const line = window.innerHeight * 0.55;
     let cur = null;
     spySecs.forEach((sec) => { const r = sec.getBoundingClientRect(); if (r.top <= line && r.bottom > line) cur = sec; });
@@ -228,9 +214,8 @@ if (ytId && /^[\w-]{6,20}$/.test(ytId)) {
     .from('.hero .eyebrow', { y: 14, autoAlpha: 0, duration: 0.8 }, 0)
     .from('.hero .lede', { y: 24, autoAlpha: 0, duration: 0.9 }, 0.7)
     .from('.hero .actions .btn', { y: 16, duration: 0.8, stagger: 0.08 }, 0.8)
-    .from('.hero .hint', { autoAlpha: 0, duration: 0.8 }, 1.2)
-    .from('.hero .stats > div', { y: 24, autoAlpha: 0, duration: 0.8, stagger: 0.08 }, 1.0)
-    .from('.hero-canvas', { autoAlpha: 0, duration: 1.6, ease: 'power2.out' }, 0.2);
+    .from('.hero .ticker', { autoAlpha: 0, duration: 0.9 }, 1.0)
+    .from('.hero-pic', { autoAlpha: 0, duration: 1.4, ease: 'power2.out' }, 0.2);
 
   // Word-by-word heading reveals
   headings.forEach((h) => {
