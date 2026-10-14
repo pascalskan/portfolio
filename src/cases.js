@@ -34,7 +34,7 @@ export const CASES = {
         'Expanding-window walk-forward validation with features recomputed inside each fold, over 101,695 predictions.',
         'Athlete-level cluster bootstrap with Holm–Bonferroni correction. A rewrite cut a 5,000-resample comparison from an estimated ~5 hours to ~11 seconds.',
         'Reproducibility: dataset SHA-256 fingerprinting, deterministic seeds, resumable checkpoints, and CI that runs every stage on a fixture.',
-        'Found and fixed a silent filter bug that had left a cohort at 496 records, fixed to 412,934, which unit tests could not catch.',
+        'Found and fixed a silent filter bug that left a cohort at 496 records instead of 412,934. Unit tests could not catch it.',
       ] },
     ],
     stack: ['Python', 'pandas', 'scikit-learn', 'NumPy', 'SciPy', 'pytest', 'GitHub Actions'],
@@ -262,7 +262,7 @@ export const CASES = {
         'The largest forecast errors led me back to the data: of 16 World Bank inflation values below −5% that the IMF also reports, six are strongly contradicted by the IMF’s series. I left the data as published and say so.',
       ] },
       { h: 'Still open', items: [
-        'No person has reviewed the methodology yet; so far only an AI model has. Chromium-only testing, and no screen-reader test.',
+        'No person has reviewed the methodology yet; so far only an AI model has. Testing was Chromium-only, with no screen-reader test.',
         'The debt and growth module is not built, and the inflation cross-check covers only values below −5%.',
         'I used AI (Claude Code) for the code, tests, drafts and wording, from my own written plan, and approved each phase. I treated everything it produced as a draft and had every headline number checked a second way.',
       ] },
