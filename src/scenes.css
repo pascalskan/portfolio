@@ -277,3 +277,4 @@
 
 /* mobile: leave room under the fixed header so a landed section heading is never clipped */
 @media (max-width: 720px) { .scene { padding-top: 124px; } #about { padding-top: 96px; } }
+.about-copy .display-m { font-size: clamp(2.2rem, 4.5vw, 4.6rem); }
