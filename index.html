@@ -89,13 +89,35 @@
       </figure>
       <div class="about-copy">
         <h2 class="display-m" data-split>Degree, clients,<br><em>competition.</em></h2>
-        <div class="about-cols" data-reveal>
-          <p>I'm a Computer Science graduate (BSc, Newcastle University, 2026) focused on applied machine learning, data and software engineering. What connects my projects is evaluation. I care whether a result holds up under realistic conditions, not just whether it looks good in a notebook.</p>
-          <p>Alongside my degree I've freelanced as a web developer, worked on a residential renovation (site worker from 2021, Site Supervisor since 2025) and competed internationally in powerlifting.</p>
+        <div class="about-blocks" data-reveal>
+          <section class="about-block" aria-labelledby="ab-degree">
+            <h3 id="ab-degree">Degree</h3>
+            <div>
+              <p>I graduated from Newcastle University in 2026 with a 2:2 in Computer Science. I specialise in data and machine learning, with a focus on data analytics and visualisation, and I treat them as one job: build the model, then show clearly what it can and cannot tell you.</p>
+              <p>My dissertation tested how well models predict powerlifting performance from more than 1.4 million public competition records. The same models scored R² 0.955 to 0.970 when tested backwards in time and only 0.342 to 0.570 when tested the way they would be used, forward in time, and no learned model beat the best simple baseline on error. Testing honestly and reporting what fails runs through the rest of my work.</p>
+              <p>Global Economic Analytics applies the same approach to 217 economies from 1995 to 2024. The hypotheses were written down before any result, forecasting baselines were fixed first, and the models, pipeline and interactive D3 explorer are one project, with a table of numbers behind every chart. The analysis is Python, pandas, scikit-learn and LightGBM, and the visuals are D3.</p>
+            </div>
+          </section>
+          <section class="about-block" aria-labelledby="ab-clients">
+            <h3 id="ab-clients">Clients</h3>
+            <div>
+              <p>I build websites for real clients. For Travel Without Borders, a UK specialist Germany-holiday company, I rebuilt the front end of their live WordPress site as an upgrade-safe child theme and have maintained it since it went live on 13 August 2026. For M.G. Drive Pro, an independent driving instructor in the East Midlands, I built the whole site and its FastAPI enquiry backend.</p>
+              <p>Both came with measurement, accessibility work and handover documentation from the start, and I keep an honest record of what went wrong as well as what shipped.</p>
+              <p>Outside software, I've worked on a residential renovation project since 2021. I started as a site worker, and since 2025 I've been the Site Supervisor on that renovation project, coordinating contractors, scheduling, procurement and on-site delivery across concurrent workstreams.</p>
+            </div>
+          </section>
+          <section class="about-block" aria-labelledby="ab-competition">
+            <h3 id="ab-competition">Competition</h3>
+            <div>
+              <p>I compete internationally in powerlifting, for both Newcastle University and Great Britain. In 2025 I won European gold and World bronze in bench press, and I've been a UK and European bench press record holder since 2024. In 2026 I took silver at the European University Championships.</p>
+              <p>Progress in the sport is slow and only shows over seasons. I don't expect short-term results, so I plan around that: turn up, follow the programme, and judge a lift by where it sits over months, not on one bad day. The bar doesn't care how I feel, which makes reliability matter more than motivation.</p>
+              <p>The same habits carry into my work. I'm comfortable with long timelines, I turn up consistently, and I would rather the result hold up than arrive early. Fittingly, my dissertation was about predicting powerlifting results.</p>
+            </div>
+          </section>
         </div>
         <aside class="note" aria-labelledby="how-i-work" data-reveal>
           <h3 id="how-i-work">How I work</h3>
-          <p>I use AI coding assistants throughout my projects, and I say so openly. I set the architecture, rules and acceptance criteria, review what's produced, and measure the results with tests and audits.</p>
+          <p>I use AI coding assistants on my projects and say so. I set the architecture, rules and acceptance criteria, review what they produce, and check the results with tests and audits.</p>
         </aside>
       </div>
     </div>
