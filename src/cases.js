@@ -187,7 +187,7 @@ export const CASES = {
     sections: [
       { h: 'The brief', items: [
         'An independent instructor needed a website that sounds like him: patient, structured, specialist with nervous drivers. Business facts came from his own questionnaire, and anything unconfirmed was checked with him rather than guessed.',
-        'Real content went in page by page. ChatGPT drafted the content and a structure audit, I applied each with Claude, and structure and content went in as separate commits. I say so openly because the process is part of the work.',
+        'Real content went in page by page. AI helped draft the content and a structure audit. I reviewed each suggestion and approved it before it went in, with structure and content in separate commits. I say so openly because the process is part of the work.',
         'No invented testimonials. Placeholder cards were labelled as placeholders until real reviews replaced them.',
       ] },
       { h: 'Decisions', items: [
@@ -264,7 +264,7 @@ export const CASES = {
       { h: 'Still open', items: [
         'No person has reviewed the methodology yet; so far only an AI model has. Testing was Chromium-only, with no screen-reader test.',
         'The debt and growth module is not built, and the inflation cross-check covers only values below −5%.',
-        'I used AI (Claude Code) for the code, tests, drafts and wording, from my own written plan, and approved each phase. I treated everything it produced as a draft and had every headline number checked a second way.',
+        'I used an AI assistant to help with code, tests, drafts and wording, working from my own written plan. I approved each phase, treated everything it produced as a draft to review, and had every headline number checked a second way.',
       ] },
     ],
     embed: { src: 'dashboard/index.html', title: 'Interactive explorer for Global Economic Analytics' },
