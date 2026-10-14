@@ -1,4 +1,4 @@
-// Case-study content. Everything here is lifted from the existing sections of the site (no new claims).
+// Case-study content. Claims come from the project repositories and records (named in the commit), never from memory. No customer data, no commercial terms.
 // `theme` mirrors each section's colours so the page reads as a continuation of the scene it came from.
 export const CASE_ORDER = ['forecasting', 'ledger', 'twb', 'drivepro', 'dashboard'];
 
@@ -73,23 +73,50 @@ export const CASES = {
     n: '03',
     section: 'twb',
     title: 'Travel Without Borders',
-    meta: 'Freelance · WordPress · Live',
+    meta: 'Freelance · WordPress · Live since 13 Aug 2026',
     theme: { bg: '#1e5630', ink: '#ffffff', mut: '#d3e4d8', acc: '#fed700', line: 'rgba(255,255,255,.28)', style: 'travel' },
-    lede: "Front-end rebuild of a UK specialist Germany-holiday company's live WordPress site, delivered as an upgrade-safe child theme.",
+    lede: "Redevelopment and ongoing maintenance of a UK specialist Germany-holiday company's live WordPress site, on a commercial theme and page builder that cannot be edited. Every customisation lives in an upgrade-safe child theme.",
     facts: [
-      { n: '59', l: 'destination pages on one layout, all re-audited on mobile' },
-      { n: '46%', l: 'less desktop image weight from a card-image fix' },
+      { n: '59', l: 'destination pages (6 regions, 53 towns) on one layout, all passing a 390px phone audit' },
+      { n: '27 → 0', l: 'of 97 pages whose mobile content differed from desktop, before and after the fix' },
+      { n: '−46%', l: 'desktop page weight from a card-image fix (5,162 → 2,802 KB)' },
+      { n: '14', l: 'child-theme modules behind one loader, each loaded only where used' },
     ],
     sections: [
+      { h: 'The constraint', items: [
+        'A live business site on a commercial theme (Ave) and page builder (WPBakery). Neither can be edited, so all code lives in a child theme and all page content lives in the client\'s database.',
+        'Backup-first on every change: a verified full backup and baseline screenshots before anything was touched, and proposed CSS measured against the live page before it was committed.',
+        'Went live on 13 August 2026 as a selective migration, not a database import. Importing the local copy would have overwritten live customer records the local copy did not have.',
+      ] },
       { h: 'What I built', items: [
-        'An upgrade-safe child theme, so the live site can keep receiving updates.',
-        'A design-token layer and a namespaced component library.',
-        'Consent-gated analytics, an EN/DE switch, and a first-party click counter that stores no personal data.',
+        'Homepage: a 12-slide hero carousel, fully clickable destination cards, Special Interest and Special Events carousels, featured testimonials and blog cards.',
+        'A testimonials system: custom page-builder elements and a dedicated page, built in four milestones to the hero\'s accessibility bar (keyboard, visible focus, reduced motion, WCAG AA colour).',
+        'A Trade page in English and German, with its own enquiry form and an Individual/Business switch on the Contact page. Business enquiries reach the same inbox but are labelled three ways, and delivery was tested end to end.',
+        '59 destination pages brought to one layout, plus the Special Interest and Special Events page families and a blog redesign with eight posts set to the client\'s copy.',
+        'Consent-gated analytics, an EN/DE language switch, and marketing-consent state reported in every enquiry email.',
+        'A first-party click counter. The client needed to know how many visitors followed a partner link; GA4 could not report it and Tag Manager access was not available, so the count runs on their own server and stores no personal data. Verified on the live site.',
+        'A distance audit of all 53 destination pages against route planners. It found real errors, such as Hamburg quoted at 425 km (Cologne\'s figure) instead of about 769 km.',
+      ] },
+      { h: 'Working to a client list', items: [
+        'The work was driven by the client\'s running task list across ten rounds of review. It was closed on 10 September, every item either delivered or explicitly closed by a decision not to build it.',
+        'A full mobile audit: the site originally had no navigation bar on non-desktop views. Content parity between desktop and phone was then checked page by page across 97 pages.',
+        'Where something looked wrong but was not mine to change, I raised it instead of altering it. About thirty pages carry a content column hidden at every breakpoint; it is with the client to decide.',
+      ] },
+      { h: 'What went wrong, written down', items: [
+        'I kept a full error record. Five defects reached visitors and four were caught first. I also logged 11 claims of mine that turned out wrong and 10 measurements that gave false results.',
+        'The image-weight fix I shipped first cut bytes by 13% but raised requests from 30 to 37, because the lazy-loader fetched two images per card. Fixing the image size itself gave the 46%.',
+        'The theme\'s scroll animation left headings, text and photographs invisible on fifteen live pages. It took three passes, and the second came from a client noticing a page seemed short of photos: one image sat at opacity 0.00000001, which no check for hidden elements would catch.',
+        '53 of the 59 destination pages never received their stylesheet, because the theme\'s page class names only the immediate parent. A class set by walking up the ancestors fixed it. Renaming two region slugs also broke 21 town pages, as the redirect plugin does not follow children.',
+        'Rules that came out of it: reload before believing a save, purge the cache and re-check with a cache-buster, and measure what the visitor receives in bytes and requests on both desktop and phone.',
+      ] },
+      { h: 'Still open', items: [
+        'The desktop menu clips its last items between about 1200 and 1520px. It is a parent-theme layout fault that predates this work, and I accepted it rather than forcing a fix that left the header broken.',
+        'GA4 reporting for the direct tag is transmitting but unconfirmed; the first-party counter is the working answer.',
       ] },
     ],
     shot: { mobile: 'shots/twb-mobile.webp', src: 'shots/twb.webp', alt: 'Screenshot of the Travel Without Borders website' },
     embed: { kind: 'site', src: 'embeds/twb/index.html', host: 'travelwithoutborders.co.uk', minW: 1240, live: 'https://travelwithoutborders.co.uk/', title: 'Travel Without Borders home page: a saved copy that scrolls and responds like the live site', label: 'Home page · scroll and click around', note: 'Some parts of the page have been removed from this preview. For the full page, please visit the live site.' },
-    stack: ['PHP', 'WordPress', 'CSS / JS', 'GA4'],
+    stack: ['PHP', 'WordPress', 'WPBakery', 'CSS / JS', 'Quform', 'GA4'],
     links: [{ label: 'Visit the live site', href: 'https://travelwithoutborders.co.uk' }],
   },
 
