@@ -10,7 +10,7 @@ const ARROW_UR = '<svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden=
 
 function caseHTML(id) {
   const c = CASES[id];
-  const i = CASE_ORDER.indexOf(id);
+  const i = CASE_ORDER.indexOf(c.parent || id);
   const next = CASES[CASE_ORDER[(i + 1) % CASE_ORDER.length]];
   const nextId = CASE_ORDER[(i + 1) % CASE_ORDER.length];
   const flow = c.flow ? `<ol class="v-flow v-rise" aria-label="Pipeline">${c.flow.map(([t, hl]) => `<li${hl ? ' class="hl"' : ''}>${esc(t)}</li>`).join('')}</ol>` : '';
@@ -35,7 +35,7 @@ function caseHTML(id) {
   <div class="v-wrap">
     <div class="v-top v-rise">
       <button type="button" class="v-back" data-close>${ARROW_L}<span>Back to work</span></button>
-      <span class="v-count" aria-label="Case study ${i + 1} of ${CASE_ORDER.length}">${esc(c.n)} / 0${CASE_ORDER.length}</span>
+      <span class="v-count" aria-label="${c.parent ? `Part of case study ${i + 1} of ${CASE_ORDER.length}` : `Case study ${i + 1} of ${CASE_ORDER.length}`}">${esc(c.n)} / 0${CASE_ORDER.length}</span>
     </div>
     <p class="v-kicker v-rise">${esc(c.meta)}</p>
     <h1 class="v-title v-rise" id="v-title">${esc(c.title)}</h1>
