@@ -49,7 +49,7 @@ export const CASES = {
     theme: { bg: '#dde7d8', ink: '#0d2a1f', mut: '#3a5546', acc: '#0a6a47', line: 'rgba(13,42,31,.28)', style: 'ledger' },
     lede: 'An operational-intelligence prototype for field-service businesses. Worker submissions only become financial records after a human approves them in a Review Centre.',
     facts: [
-      { n: '1,036 → 9', l: 'automated accessibility violations after a structured audit' },
+      { n: '1,036 → 9', l: 'axe-core violating elements after a structured audit' },
       { n: '1,961 → 399 KB', l: 'entry bundle with route-level code splitting' },
       { n: '4', l: 'governing rules: Approval, Audit, Job Attribution, Financial Integrity' },
     ],
@@ -59,9 +59,10 @@ export const CASES = {
       { h: 'What I built', items: [
         'Four governing rules: Approval, Audit, Job Attribution, Financial Integrity. They are written down and enforced by role-aware tests.',
         'Role-specific experiences for CEO, project managers, workers (including an offline queue) and a client portal.',
-        'Ran a structured front-end audit across every route, role and viewport: automated accessibility violations fell from 1,036 to 9 and horizontal overflow on phone and tablet widths went to zero.',
+        'Ran a structured front-end audit across 69 pages and four roles (CEO, project manager, worker, client): axe-core violating elements fell from 1,036 to 9, and horizontal overflow went to zero at 375, 768 and 955px.',
         'Entry bundle cut from 1,961 KB to 399 KB with route-level code splitting.',
         'Backend is documented but deliberately not built yet. The approval and audit model is validated in a working interface first.',
+        'Built with AI assistance for planning, auditing and production. I review everything that ships.',
       ] },
     ],
     shot: { mobile: 'shots/ledger-worker-mobile.webp', src: 'shots/ledger-review-centre.webp', alt: 'Screenshot of The Ledger Review Centre, shown with invented demo data' },
